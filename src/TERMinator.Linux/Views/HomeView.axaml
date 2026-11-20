@@ -1,0 +1,410 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:TERMinator.Linux.ViewModels"
+             xmlns:controls="clr-namespace:TERMinator.Linux.Controls"
+             xmlns:conv="clr-namespace:TERMinator.Linux.Converters"
+             xmlns:effects="clr-namespace:TERMinator.Linux.Effects"
+             x:Class="TERMinator.Linux.Views.HomeView"
+             Background="{StaticResource BackgroundDarkBrush}">
+
+    <Grid>
+        <!-- The whole layout scales uniformly with the window (up or down), centred, keeping its proportions.
+             Layout sizes inside stay in unscaled units, so the splash glitch overlays line up at any scale.
+             MainWindow flips StretchDirection to DownOnly while it fits the window to the layout. -->
+        <Viewbox x:Name="HomeViewbox"
+                 Stretch="Uniform"
+                 StretchDirection="Both">
+            <!-- Two blocks in one grid. Stacked (default): the side column sits in row 1 under the splash card.
+                 Side-by-side (View menu): HomeView.SetSideBySide moves it to row 0, column 1. -->
+            <Grid x:Name="HomeLayoutGrid"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Top"
+                  Margin="20"
+                  RowDefinitions="Auto,Auto"
+                  ColumnDefinitions="Auto,Auto">
+
+                <!-- Splash card: logo, marquee, splash art, history ticker. Magenta outline. -->
+                <Grid x:Name="HomeTopCard" Grid.Row="0" Grid.Column="0">
+                    <controls:HomeCard OutlineColor="#FFFF2BD6">
+                        <StackPanel x:Name="HomeTopPanel" Width="600" VerticalAlignment="Top">
+
+                            <!-- Header logo (click opens the TERMinator page on deadmodemsociety.com; no tooltip) -->
+                            <Image x:Name="HeaderLogo"
+                                   Source="avares://TERMinator/Assets/header_logo.png"
+                                   Cursor="Hand"
+                                   Stretch="Uniform"
+                                   MaxHeight="80"
+                                   RenderOptions.BitmapInterpolationMode="None"
+                                   Margin="0,0,0,8" />
+
+                            <!-- Scrolling marquee -->
+                            <Border Background="Transparent"
+                                    BorderThickness="0"
+                                    Padding="0,4"
+                                    ClipToBounds="True"
+                                    Margin="0,0,0,16">
+                                <Canvas x:Name="MarqueeCanvas" Height="18" ClipToBounds="True">
+                                    <TextBlock x:Name="MarqueeText"
+                                               FontFamily="JetBrains Mono, DejaVu Sans Mono, monospace"
+                                               FontSize="12"
+                                               Foreground="#FF66EE66"
+                                               Canvas.Top="1"
+                                               Text="&gt;&gt;&gt; You're looking at a fresh zero day drop from JSONBourne &lt;&lt;&lt; TERMinator, a fresh new BBS terminal app for people who live their life 64K at a time. Greetings to all the crews still pushing pixels in 16 colors, all the SysOps who never sleep, and anyone still rocking a 1084S monitor like it's 1989. Special thx to aNACHRONiST (aNSt) for providing his excellent skillz and for making textmode look like pixel CG! If this thing breaks, you get to keep both pieces. Send fixes, not complaints. &gt;&gt;&gt; end of line &lt;&lt;&lt;">
+                                        <TextBlock.RenderTransform>
+                                            <TranslateTransform />
+                                        </TextBlock.RenderTransform>
+                                    </TextBlock>
+                                </Canvas>
+                            </Border>
+
+                            <!-- Splash art (click opens absinthebbs.net; the glitch layer is not hit-testable) -->
+                            <Grid x:Name="SplashContainer" ClipToBounds="True" Margin="0,0,0,16" Cursor="Hand"
+                                  Background="Transparent">
+                                <Image x:Name="SplashImage"
+                                       Source="avares://TERMinator/Assets/splash_screen.png"
+                                       Stretch="Uniform"
+                                       MaxHeight="450"
+                                       RenderOptions.BitmapInterpolationMode="None" />
+
+                                <!-- TV static burst (same stretch/size as the splash, so it stays inside the image) -->
+                                <Image x:Name="StaticBurstImage"
+                                       IsHitTestVisible="False"
+                                       Stretch="Uniform"
+                                       MaxHeight="450"
+                                       RenderOptions.BitmapInterpolationMode="None" />
+
+                                <!-- CRT scanline sweep (same stretch/size as the splash, so it stays inside the image) -->
+                                <Image x:Name="ScanlineImage"
+                                       IsHitTestVisible="False"
+                                       Stretch="Uniform"
+                                       MaxHeight="450"
+                                       RenderOptions.BitmapInterpolationMode="None" />
+
+                                <!-- Glitch displacement strips (on top) -->
+                                <Canvas x:Name="GlitchCanvas"
+                                        IsHitTestVisible="False"
+                                        ClipToBounds="True" />
+                            </Grid>
+
+                            <!-- History ticker (click opens the full list) -->
+                            <controls:HistoryTicker x:Name="FactsTicker" />
+
+                        </StackPanel>
+                    </controls:HomeCard>
+
+                    <!-- Facts overlay: every ticker entry on its own card, laid over this card at 90% of its size.
+                         Opened by clicking the ticker; closed by the X, Esc, clicking the dimmed backdrop, or the
+                         layout toggle. HomeView.ShowFactsOverlay sizes it to the card so it can never make it grow. -->
+                    <Grid x:Name="FactsOverlay"
+                          IsVisible="False"
+                          Focusable="True">
+                        <Border x:Name="FactsBackdrop"
+                                CornerRadius="10"
+                                Background="#B30D0D1A" />
+
+                        <controls:HomeCard x:Name="FactsCard"
+                                           OutlineColor="#FFFFAA00"
+                                           Padding="18,14,10,14"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center">
+                            <DockPanel>
+                                <Grid DockPanel.Dock="Top" Margin="0,0,8,10">
+                                    <TextBlock controls:DecryptText.Text="COMPUTING &amp; BBS HISTORY"
+                                               Foreground="{StaticResource AccentAmberBrush}"
+                                               FontSize="13"
+                                               FontWeight="Bold"
+                                               VerticalAlignment="Center" />
+                                    <Button x:Name="FactsClose"
+                                            HorizontalAlignment="Right"
+                                            Width="28" Height="28"
+                                            Padding="0"
+                                            ToolTip.Tip="Close (Esc)">
+                                        <Path Data="M0,0 L9,9 M9,0 L0,9"
+                                              Stroke="{StaticResource AccentGreenBrush}"
+                                              StrokeThickness="1.5"
+                                              Width="9" Height="9"
+                                              Stretch="None" />
+                                    </Button>
+                                </Grid>
+
+                                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                              HorizontalScrollBarVisibility="Disabled"
+                                              Padding="0,0,8,0">
+                                    <ItemsControl x:Name="FactsList">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding}"
+                                                           FontFamily="JetBrains Mono, DejaVu Sans Mono, monospace"
+                                                           FontSize="12"
+                                                           Foreground="#FF55DD55"
+                                                           TextWrapping="Wrap"
+                                                           Margin="0,0,0,6" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+                            </DockPanel>
+                        </controls:HomeCard>
+                    </Grid>
+                </Grid>
+
+                <!-- Side column (row 1 stacked / column 1 side-by-side): Quick Connect card over the shortcuts card.
+                     Row 0 is * so the Quick Connect card takes the slack when the column is stretched side-by-side. -->
+                <Grid x:Name="HomeSideColumn"
+                      Grid.Row="1" Grid.Column="0"
+                      Margin="0,16,0,0"
+                      VerticalAlignment="Top"
+                      RowDefinitions="*,Auto">
+
+                    <!-- Quick Connect card: heading + tiles only. Cyan outline. -->
+                    <controls:HomeCard x:Name="HomeBottomCard"
+                                       Grid.Row="0"
+                                       OutlineColor="#FF22E6FF"
+                                       Padding="20,14,20,14">
+                        <StackPanel x:Name="HomeBottomPanel" Width="600" VerticalAlignment="Top">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock controls:DecryptText.Text="QUICK CONNECT"
+                                           Foreground="{StaticResource AccentAmberBrush}"
+                                           FontSize="11" FontWeight="Bold"
+                                           HorizontalAlignment="Center"
+                                           Margin="0,0,0,8" />
+
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <!-- Slot 1 -->
+                                    <StackPanel>
+                                        <Button Command="{Binding PickQuickConnect1Command}" Classes="quicktile">
+                                            <Grid Width="172" Height="150">
+                                                <StackPanel IsVisible="{Binding HasQuickConnect1}">
+                                                    <Grid Width="172" Height="129">
+                                                        <controls:CrtImage x:Name="QuickConnectImage1"
+                                                                           Width="172" Height="129"
+                                                                           Source="{Binding QuickConnect1Image, Converter={x:Static conv:AvaresImageConverter.Instance}}" />
+                                                        <!-- Hover target lock: brackets + decrypting "PROTO // host:port" caption, not hit-testable -->
+                                                        <controls:TargetLockOverlay Target="{Binding QuickConnect1Target}" />
+                                                    </Grid>
+                                                    <TextBlock controls:DecryptText.Text="{Binding QuickConnect1Label}"
+                                                               controls:DecryptText.ReplayOnHover="True"
+                                                               Foreground="{StaticResource AccentGreenBrush}"
+                                                               FontSize="11" TextAlignment="Center"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               Margin="0,4,0,0" />
+                                                </StackPanel>
+                                                <StackPanel VerticalAlignment="Center" IsVisible="{Binding HasNoQuickConnect1}">
+                                                    <TextBlock Text="Quick Connect 1"
+                                                               Foreground="{StaticResource AccentAmberBrush}"
+                                                               FontSize="13" FontWeight="SemiBold"
+                                                               TextAlignment="Center" />
+                                                    <TextBlock Text="Click to choose"
+                                                               Foreground="{StaticResource TextSecondaryBrush}"
+                                                               FontSize="11"
+                                                               TextAlignment="Center"
+                                                               Margin="0,6,0,0" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </Button>
+                                        <Button Content="CONNECT"
+                                                Command="{Binding ConnectQuick1Command}"
+                                                Classes="amber"
+                                                FontWeight="Bold"
+                                                HorizontalAlignment="Stretch"
+                                                Margin="0,6,0,0" />
+                                    </StackPanel>
+
+                                    <!-- Slot 2 -->
+                                    <StackPanel Margin="12,0,0,0">
+                                        <Button Command="{Binding PickQuickConnect2Command}" Classes="quicktile">
+                                            <Grid Width="172" Height="150">
+                                                <StackPanel IsVisible="{Binding HasQuickConnect2}">
+                                                    <Grid Width="172" Height="129">
+                                                        <controls:CrtImage x:Name="QuickConnectImage2"
+                                                                           Width="172" Height="129"
+                                                                           Source="{Binding QuickConnect2Image, Converter={x:Static conv:AvaresImageConverter.Instance}}" />
+                                                        <!-- Hover target lock: brackets + decrypting "PROTO // host:port" caption, not hit-testable -->
+                                                        <controls:TargetLockOverlay Target="{Binding QuickConnect2Target}" />
+                                                    </Grid>
+                                                    <TextBlock controls:DecryptText.Text="{Binding QuickConnect2Label}"
+                                                               controls:DecryptText.ReplayOnHover="True"
+                                                               Foreground="{StaticResource AccentGreenBrush}"
+                                                               FontSize="11" TextAlignment="Center"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               Margin="0,4,0,0" />
+                                                </StackPanel>
+                                                <StackPanel VerticalAlignment="Center" IsVisible="{Binding HasNoQuickConnect2}">
+                                                    <TextBlock Text="Quick Connect 2"
+                                                               Foreground="{StaticResource AccentAmberBrush}"
+                                                               FontSize="13" FontWeight="SemiBold"
+                                                               TextAlignment="Center" />
+                                                    <TextBlock Text="Click to choose"
+                                                               Foreground="{StaticResource TextSecondaryBrush}"
+                                                               FontSize="11"
+                                                               TextAlignment="Center"
+                                                               Margin="0,6,0,0" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </Button>
+                                        <Button Content="CONNECT"
+                                                Command="{Binding ConnectQuick2Command}"
+                                                Classes="amber"
+                                                FontWeight="Bold"
+                                                HorizontalAlignment="Stretch"
+                                                Margin="0,6,0,0" />
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- Slots 3-4: second row, only visible in the side-by-side layout (HomeView.SetSideBySide).
+                                     Stay saved while hidden. -->
+                                <StackPanel x:Name="QuickConnectRow2"
+                                            Orientation="Horizontal"
+                                            HorizontalAlignment="Center"
+                                            Margin="0,24,0,0"
+                                            IsVisible="False">
+                                    <!-- Slot 3 -->
+                                    <StackPanel>
+                                        <Button Command="{Binding PickQuickConnect3Command}" Classes="quicktile">
+                                            <Grid Width="172" Height="150">
+                                                <StackPanel IsVisible="{Binding HasQuickConnect3}">
+                                                    <Grid Width="172" Height="129">
+                                                        <controls:CrtImage x:Name="QuickConnectImage3"
+                                                                           Width="172" Height="129"
+                                                                           Source="{Binding QuickConnect3Image, Converter={x:Static conv:AvaresImageConverter.Instance}}" />
+                                                        <!-- Hover target lock: brackets + decrypting "PROTO // host:port" caption, not hit-testable -->
+                                                        <controls:TargetLockOverlay Target="{Binding QuickConnect3Target}" />
+                                                    </Grid>
+                                                    <TextBlock controls:DecryptText.Text="{Binding QuickConnect3Label}"
+                                                               controls:DecryptText.ReplayOnHover="True"
+                                                               Foreground="{StaticResource AccentGreenBrush}"
+                                                               FontSize="11" TextAlignment="Center"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               Margin="0,4,0,0" />
+                                                </StackPanel>
+                                                <StackPanel VerticalAlignment="Center" IsVisible="{Binding HasNoQuickConnect3}">
+                                                    <TextBlock Text="Quick Connect 3"
+                                                               Foreground="{StaticResource AccentAmberBrush}"
+                                                               FontSize="13" FontWeight="SemiBold"
+                                                               TextAlignment="Center" />
+                                                    <TextBlock Text="Click to choose"
+                                                               Foreground="{StaticResource TextSecondaryBrush}"
+                                                               FontSize="11"
+                                                               TextAlignment="Center"
+                                                               Margin="0,6,0,0" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </Button>
+                                        <Button Content="CONNECT"
+                                                Command="{Binding ConnectQuick3Command}"
+                                                Classes="amber"
+                                                FontWeight="Bold"
+                                                HorizontalAlignment="Stretch"
+                                                Margin="0,6,0,0" />
+                                    </StackPanel>
+
+                                    <!-- Slot 4 -->
+                                    <StackPanel Margin="12,0,0,0">
+                                        <Button Command="{Binding PickQuickConnect4Command}" Classes="quicktile">
+                                            <Grid Width="172" Height="150">
+                                                <StackPanel IsVisible="{Binding HasQuickConnect4}">
+                                                    <Grid Width="172" Height="129">
+                                                        <controls:CrtImage x:Name="QuickConnectImage4"
+                                                                           Width="172" Height="129"
+                                                                           Source="{Binding QuickConnect4Image, Converter={x:Static conv:AvaresImageConverter.Instance}}" />
+                                                        <!-- Hover target lock: brackets + decrypting "PROTO // host:port" caption, not hit-testable -->
+                                                        <controls:TargetLockOverlay Target="{Binding QuickConnect4Target}" />
+                                                    </Grid>
+                                                    <TextBlock controls:DecryptText.Text="{Binding QuickConnect4Label}"
+                                                               controls:DecryptText.ReplayOnHover="True"
+                                                               Foreground="{StaticResource AccentGreenBrush}"
+                                                               FontSize="11" TextAlignment="Center"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               Margin="0,4,0,0" />
+                                                </StackPanel>
+                                                <StackPanel VerticalAlignment="Center" IsVisible="{Binding HasNoQuickConnect4}">
+                                                    <TextBlock Text="Quick Connect 4"
+                                                               Foreground="{StaticResource AccentAmberBrush}"
+                                                               FontSize="13" FontWeight="SemiBold"
+                                                               TextAlignment="Center" />
+                                                    <TextBlock Text="Click to choose"
+                                                               Foreground="{StaticResource TextSecondaryBrush}"
+                                                               FontSize="11"
+                                                               TextAlignment="Center"
+                                                               Margin="0,6,0,0" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </Button>
+                                        <Button Content="CONNECT"
+                                                Command="{Binding ConnectQuick4Command}"
+                                                Classes="amber"
+                                                FontWeight="Bold"
+                                                HorizontalAlignment="Stretch"
+                                                Margin="0,6,0,0" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+                    </controls:HomeCard>
+
+                    <!-- Shortcuts card: Phonebook, CRT effect, layout toggle, command line, Settings. Violet outline.
+                         Icons are inline line-art paths (no Segoe icon font on Linux); labels decrypt and replay on hover. -->
+                    <controls:HomeCard x:Name="HomeShortcutsCard"
+                                       Grid.Row="1"
+                                       Margin="0,16,0,0"
+                                       OutlineColor="#FF7B5CFF"
+                                       Padding="20,14,20,14">
+                        <Grid x:Name="HomeShortcutsPanel" Width="600">
+                            <UniformGrid Columns="5" Width="420" HorizontalAlignment="Center">
+                                <Button Classes="quicktile shortcut"
+                                        Command="{Binding OpenPhonebookCommand}">
+                                    <StackPanel>
+                                        <!-- contact card -->
+                                        <Path Classes="shortcutIcon"
+                                              Data="M2.5,4.5 H21.5 V19.5 H2.5 Z M8.5,8 A2.5,2.5 0 1 0 8.5,13 A2.5,2.5 0 1 0 8.5,8 M4.5,17 C4.5,14.5 6.3,13.5 8.5,13.5 C10.7,13.5 12.5,14.5 12.5,17 M14.5,9.5 H19 M14.5,13 H19" />
+                                        <TextBlock Classes="shortcutLabel" controls:DecryptText.Text="PHONEBOOK" controls:DecryptText.ReplayOnHover="True" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Classes="quicktile shortcut"
+                                        Command="{Binding OpenCrtCommand}">
+                                    <StackPanel>
+                                        <!-- monitor -->
+                                        <Path Classes="shortcutIcon"
+                                              Data="M2.5,4 H21.5 V16.5 H2.5 Z M12,16.5 V20.5 M7.5,20.5 H16.5" />
+                                        <TextBlock Classes="shortcutLabel" controls:DecryptText.Text="CRT MODE" controls:DecryptText.ReplayOnHover="True" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Classes="quicktile shortcut"
+                                        Command="{Binding ToggleLayoutCommand}">
+                                    <StackPanel>
+                                        <!-- two pages -->
+                                        <Path Classes="shortcutIcon"
+                                              Data="M2.5,4 H10.5 V20 H2.5 Z M13.5,4 H21.5 V20 H13.5 Z" />
+                                        <TextBlock Classes="shortcutLabel" controls:DecryptText.Text="LAYOUT" controls:DecryptText.ReplayOnHover="True" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Classes="quicktile shortcut"
+                                        Command="{Binding OpenCommandLineCommand}">
+                                    <StackPanel>
+                                        <!-- command prompt -->
+                                        <Path Classes="shortcutIcon"
+                                              Data="M2.5,4 H21.5 V20 H2.5 Z M6.5,9 L10,12 L6.5,15 M12,15.5 H17.5" />
+                                        <TextBlock Classes="shortcutLabel" controls:DecryptText.Text="COMMAND" controls:DecryptText.ReplayOnHover="True" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Classes="quicktile shortcut"
+                                        Command="{Binding OpenSettingsCommand}">
+                                    <StackPanel>
+                                        <!-- gear -->
+                                        <Path Classes="shortcutIcon"
+                                              Data="M12,8 A4,4 0 1 0 12,16 A4,4 0 1 0 12,8 M12,2 V5 M12,19 V22 M2,12 H5 M19,12 H22 M4.9,4.9 L7,7 M17,17 L19.1,19.1 M4.9,19.1 L7,17 M17,7 L19.1,4.9" />
+                                        <TextBlock Classes="shortcutLabel" controls:DecryptText.Text="SETTINGS" controls:DecryptText.ReplayOnHover="True" />
+                                    </StackPanel>
+                                </Button>
+                            </UniformGrid>
+                        </Grid>
+                    </controls:HomeCard>
+                </Grid>
+            </Grid>
+        </Viewbox>
+
+        <!-- Phosphor tube (View > Phosphor, §7): turns the whole home screen monochrome. Hit-test invisible and it
+             reports no desired size, so it never takes part in the window fit. -->
+        <effects:ScreenEffectOverlay x:Name="PhosphorLayer" />
+    </Grid>
+</UserControl>

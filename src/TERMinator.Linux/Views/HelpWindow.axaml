@@ -1,0 +1,128 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="TERMinator.Linux.Views.HelpWindow"
+        Title="TERMinator Help"
+        Width="720" Height="640"
+        MinWidth="480" MinHeight="320"
+        CanResize="True"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        Background="#FF12121A">
+
+    <Window.Styles>
+        <!-- Literal colours rather than StaticResource lookups: a missing resource key is a
+             RUNTIME failure in Avalonia, and this window is off the startup path. Same
+             reasoning as CrtSettingsWindow. -->
+        <Style Selector="TextBlock.helpSection">
+            <Setter Property="Foreground" Value="#FFFFAA00" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Margin" Value="0,18,0,8" />
+        </Style>
+        <Style Selector="TextBlock.helpSubsection">
+            <Setter Property="Foreground" Value="#FF00CCCC" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Margin" Value="0,10,0,5" />
+        </Style>
+        <Style Selector="TextBlock.helpBullet">
+            <Setter Property="Foreground" Value="#FFAAAAAA" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Margin" Value="14,0,0,4" />
+        </Style>
+    </Window.Styles>
+
+    <Grid Margin="24,18,24,18" RowDefinitions="Auto,*,Auto">
+
+        <TextBlock Grid.Row="0"
+                   Text="TERMINATOR HELP"
+                   FontSize="16" FontWeight="Bold"
+                   Foreground="#FFFFAA00"
+                   Margin="0,0,0,4" />
+
+        <ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled"
+                      Padding="0,0,8,0">
+            <StackPanel>
+                <TextBlock Text="TERMINAL CONTROLS" Classes="helpSection" />
+                <TextBlock Text="Keyboard" Classes="helpSubsection" />
+                <TextBlock Text="Standard keyboard input is sent straight to the BBS." Classes="helpBullet" />
+                <TextBlock Text="Ctrl+C / Ctrl+V - copy the selection / paste" Classes="helpBullet" />
+                <TextBlock Text="Ctrl+Shift+A - select the whole screen" Classes="helpBullet" />
+                <TextBlock Text="Alt+Enter - toggle full screen" Classes="helpBullet" />
+                <TextBlock Text="Alt+I - send the saved login" Classes="helpBullet" />
+                <TextBlock Text="Ctrl+Shift+S - take a BBS snapshot" Classes="helpBullet" />
+                <TextBlock Text="Esc, Tab and Ctrl+key are sent to the BBS untouched" Classes="helpBullet" />
+                <TextBlock Text="Selection and URLs" Classes="helpSubsection" />
+                <TextBlock Text="Drag with the left mouse button to select text." Classes="helpBullet" />
+                <TextBlock Text="Click a URL shown on screen to open it in your browser." Classes="helpBullet" />
+                <TextBlock Text="Scrollback" Classes="helpSubsection" />
+                <TextBlock Text="Scroll the wheel up to browse the history, down to return to the live session." Classes="helpBullet" />
+                <TextBlock Text="A SCROLLBACK banner shows how many lines back you are." Classes="helpBullet" />
+                <TextBlock Text="Status bar" Classes="helpSubsection" />
+                <TextBlock Text="Shows the BBS name, connection time, screen mode and transfer stats." Classes="helpBullet" />
+
+                <TextBlock Text="CRT AND SCANLINE EFFECTS" Classes="helpSection" />
+                <TextBlock Text="Turning it on" Classes="helpSubsection" />
+                <TextBlock Text="View menu &gt; CRT / Scanline Effect... then tick Enable CRT effect." Classes="helpBullet" />
+                <TextBlock Text="The window is modeless: leave it open and dial the look in against live ANSI art." Classes="helpBullet" />
+                <TextBlock Text="Twelve presets, from Subtle Scanlines to Worn Out Tube." Classes="helpBullet" />
+                <TextBlock Text="RESET restores the factory look and leaves the on/off switch alone." Classes="helpBullet" />
+
+                <TextBlock Text="SESSION LOGGING" Classes="helpSection" />
+                <TextBlock Text="Recording a transcript" Classes="helpSubsection" />
+                <TextBlock Text="Call &gt; Log Session while connected. It stays ticked while a transcript is being written." Classes="helpBullet" />
+                <TextBlock Text="Untick it to stop." Classes="helpBullet" />
+                <TextBlock Text="Logs are named after the BBS and the time, in the folder set in Preferences." Classes="helpBullet" />
+
+                <TextBlock Text="FILE TRANSFER" Classes="helpSection" />
+                <TextBlock Text="ZMODEM" Classes="helpSubsection" />
+                <TextBlock Text="Downloads start on their own when the BBS begins a ZMODEM send." Classes="helpBullet" />
+                <TextBlock Text="To upload: start the receive on the BBS first, then Transfer &gt; Send File (ZMODEM)." Classes="helpBullet" />
+                <TextBlock Text="XMODEM / YMODEM" Classes="helpSubsection" />
+                <TextBlock Text="Nothing is auto-detected. Start the transfer on the BBS first, then pick the SAME protocol here." Classes="helpBullet" />
+                <TextBlock Text="Transfer &gt; Send with X/YMODEM - XMODEM (128-byte), XMODEM (1K), YMODEM." Classes="helpBullet" />
+                <TextBlock Text="Transfer &gt; Receive with X/YMODEM - XMODEM, YMODEM, YMODEM-G." Classes="helpBullet" />
+                <TextBlock Text="XMODEM carries no filename, so a receive asks where to save before it starts." Classes="helpBullet" />
+                <TextBlock Text="128-byte blocks are listed first because many 8-bit boards accept nothing else." Classes="helpBullet" />
+
+                <TextBlock Text="PHONEBOOK" Classes="helpSection" />
+                <TextBlock Text="Managing connections" Classes="helpSubsection" />
+                <TextBlock Text="File &gt; Phonebook... opens your BBS list." Classes="helpBullet" />
+                <TextBlock Text="Drag a tile to reorder the list." Classes="helpBullet" />
+                <TextBlock Text="Snapshots taken during a session appear as the tile thumbnail." Classes="helpBullet" />
+                <TextBlock Text="Switch between List, Small, Medium and Large layouts from the toolbar." Classes="helpBullet" />
+                <TextBlock Text="Import and export" Classes="helpSubsection" />
+                <TextBlock Text="File &gt; Export Phonebook... writes a .zip of your connections and their snapshots, or a plain .xml." Classes="helpBullet" />
+                <TextBlock Text="File &gt; Import Phonebook... reads either back, and asks whether to merge or replace." Classes="helpBullet" />
+                <TextBlock Text="The format is shared with the macOS and Windows clients." Classes="helpBullet" />
+                <TextBlock Text="Passwords are NEVER exported - they stay in the system keyring." Classes="helpBullet" />
+
+                <TextBlock Text="CONNECTIONS" Classes="helpSection" />
+                <TextBlock Text="Protocols" Classes="helpSubsection" />
+                <TextBlock Text="Telnet, Raw, SSH, Telnet over SSL, and WebSocket (plain or secure)." Classes="helpBullet" />
+                <TextBlock Text="Raw is a plain 8-bit socket with no telnet negotiation." Classes="helpBullet" />
+                <TextBlock Text="Credentials" Classes="helpSubsection" />
+                <TextBlock Text="Saved passwords are held in the system keyring, not the phonebook." Classes="helpBullet" />
+                <TextBlock Text="Leave the password blank when editing to keep the existing one." Classes="helpBullet" />
+                <TextBlock Text="Call &gt; Show SSH Debug Log shows the negotiation log after a failed SSH connection." Classes="helpBullet" />
+
+                <TextBlock Text="SETTINGS" Classes="helpSection" />
+                <TextBlock Text="Preferences" Classes="helpSubsection" />
+                <TextBlock Text="Bell sound: pick from 30 vintage tones, or switch it off." Classes="helpBullet" />
+                <TextBlock Text="Terminal: default font and screen mode for new connections." Classes="helpBullet" />
+                <TextBlock Text="TAP+: BBS background music, and the audio cache limit." Classes="helpBullet" />
+                <TextBlock Text="File transfer: download folder and ZMODEM auto-detect." Classes="helpBullet" />
+                <TextBlock Text="Session logging: where transcripts are written." Classes="helpBullet" />
+            </StackPanel>
+        </ScrollViewer>
+
+        <Button Grid.Row="2"
+                x:Name="CloseButton"
+                Content="CLOSE"
+                Click="CloseButton_Click"
+                Width="110"
+                HorizontalAlignment="Right"
+                Margin="0,14,0,0" />
+    </Grid>
+</Window>

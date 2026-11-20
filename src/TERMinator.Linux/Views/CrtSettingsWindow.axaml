@@ -1,0 +1,238 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="TERMinator.Linux.Views.CrtSettingsWindow"
+        Title="CRT &amp; Scanline Effects"
+        Width="660" Height="600"
+        MinWidth="500" MinHeight="320"
+        CanResize="True"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        Background="#FF12121A">
+
+    <Window.Styles>
+        <!-- Shared row metrics so every control line breathes the same amount.
+             Literal colours rather than StaticResource lookups, the same way
+             SshDebugWindow does it: a missing resource key is a RUNTIME failure in
+             Avalonia, and this window is not on the startup path where it would be
+             noticed. -->
+        <Style Selector="TextBlock.rowLabel">
+            <Setter Property="Foreground" Value="#FFAAAAAA" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+        <Style Selector="TextBlock.rowValue">
+            <Setter Property="Foreground" Value="#FFFFAA00" />
+            <Setter Property="FontFamily" Value="JetBrains Mono, DejaVu Sans Mono, monospace" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="HorizontalAlignment" Value="Right" />
+            <Setter Property="MinWidth" Value="58" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+        <Style Selector="TextBlock.sectionHeader">
+            <Setter Property="Foreground" Value="#FF00CCCC" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Margin" Value="0,10,0,7" />
+        </Style>
+        <Style Selector="Slider">
+            <Setter Property="Margin" Value="14,0,16,8" />
+        </Style>
+    </Window.Styles>
+
+    <Grid Margin="24,18,24,18" RowDefinitions="Auto,*,Auto">
+
+        <!-- Fixed header: title, the unsupported warning, and the master controls -->
+        <StackPanel Grid.Row="0">
+
+            <TextBlock Text="CRT &amp; SCANLINE EFFECTS"
+                       FontSize="16" FontWeight="Bold"
+                       Foreground="#FFFFAA00"
+                       Margin="0,0,0,12" />
+
+            <TextBlock x:Name="UnsupportedNote"
+                       Text="This system's graphics stack cannot compile the CRT shader, so the effect cannot be shown."
+                       Foreground="#FFFF5555"
+                       TextWrapping="Wrap"
+                       IsVisible="False"
+                       Margin="0,0,0,12" />
+
+            <Border Background="#FF1A1A2E"
+                    BorderBrush="#FF333344"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Padding="16,12"
+                    Margin="0,0,0,4">
+                <Grid ColumnDefinitions="Auto,*,Auto,220">
+                    <CheckBox x:Name="EnableCheck"
+                              Grid.Column="0"
+                              Content="Enable CRT effect"
+                              IsChecked="{Binding Enabled}"
+                              VerticalAlignment="Center" />
+
+                    <TextBlock Grid.Column="2"
+                               Text="Preset"
+                               Foreground="#FFAAAAAA"
+                               VerticalAlignment="Center"
+                               Margin="0,0,12,0" />
+                    <ComboBox Grid.Column="3"
+                              HorizontalAlignment="Stretch"
+                              ItemsSource="{Binding PresetOptions}"
+                              SelectedItem="{Binding Preset}"
+                              VerticalAlignment="Center" />
+                </Grid>
+            </Border>
+
+        </StackPanel>
+
+        <!-- Effect sliders scroll, so the window can be sized down freely.
+             Each row: label | slider | live value -->
+        <ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled"
+                      Margin="0,4,0,0"
+                      Padding="0,0,6,0">
+            <Grid x:Name="SliderGrid" IsEnabled="{Binding Enabled}"
+                  ColumnDefinitions="130,*,Auto">
+                <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Grid.ColumnSpan="3" Text="RASTER" Classes="sectionHeader" />
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Scanlines" Classes="rowLabel" />
+            <Slider Grid.Row="1" Grid.Column="1" Minimum="0" Maximum="1"
+                    Value="{Binding ScanlineIntensity}" />
+            <TextBlock Grid.Row="1" Grid.Column="2" Classes="rowValue"
+                       Text="{Binding ScanlineIntensity, StringFormat={}{0:P0}}" />
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="Line spacing" Classes="rowLabel" />
+            <Slider Grid.Row="2" Grid.Column="1" Minimum="2" Maximum="8" TickFrequency="1" IsSnapToTickEnabled="True"
+                    Value="{Binding ScanlinePitch}" />
+            <TextBlock Grid.Row="2" Grid.Column="2" Classes="rowValue"
+                       Text="{Binding ScanlinePitch, StringFormat={}{0:F0} px}" />
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="Beam width" Classes="rowLabel" />
+            <Slider Grid.Row="3" Grid.Column="1" Minimum="0.2" Maximum="1"
+                    Value="{Binding BeamWidth}" />
+            <TextBlock Grid.Row="3" Grid.Column="2" Classes="rowValue"
+                       Text="{Binding BeamWidth, StringFormat={}{0:P0}}" />
+            <TextBlock Grid.Row="4" Grid.Column="0" Text="Interlace" Classes="rowLabel" />
+            <Slider Grid.Row="4" Grid.Column="1" Minimum="0" Maximum="1"
+                    Value="{Binding Interlace}" />
+            <TextBlock Grid.Row="4" Grid.Column="2" Classes="rowValue"
+                       Text="{Binding Interlace, StringFormat={}{0:P0}}" />
+            <TextBlock Grid.Row="5" Grid.Column="0" Text="Shadow mask" Classes="rowLabel" />
+            <Slider Grid.Row="5" Grid.Column="1" Minimum="0" Maximum="1"
+                    Value="{Binding MaskIntensity}" />
+            <TextBlock Grid.Row="5" Grid.Column="2" Classes="rowValue"
+                       Text="{Binding MaskIntensity, StringFormat={}{0:P0}}" />
+            <TextBlock Grid.Row="6" Grid.Column="0" Text="Mask pitch" Classes="rowLabel" />
+            <Slider Grid.Row="6" Grid.Column="1" Minimum="2" Maximum="9" TickFrequency="1" IsSnapToTickEnabled="True"
+                    Value="{Binding MaskPitch}" />
+            <TextBlock Grid.Row="6" Grid.Column="2" Classes="rowValue"
+                       Text="{Binding MaskPitch, StringFormat={}{0:F0} px}" />
+            <TextBlock Grid.Row="7" Grid.ColumnSpan="3" Text="TUBE" Classes="sectionHeader" />
+            <TextBlock Grid.Row="8" Grid.Column="0" Text="Curvature" Classes="rowLabel" />
+            <Slider Grid.Row="8" Grid.Column="1" Minimum="0" Maximum="1"
+                    Value="{Binding Curvature}" />
+            <TextBlock Grid.Row="8" Grid.Column="2" Classes="rowValue"
+                       Text="{Binding Curvature, StringFormat={}{0:P0}}" />
+            <TextBlock Grid.Row="9" Grid.Column="0" Text="Overscan" Classes="rowLabel" />
+            <Slider Grid.Row="9" Grid.Column="1" Minimum="0" Maximum="0.4"
+                    Value="{Binding Overscan}" />
+            <TextBlock Grid.Row="9" Grid.Column="2" Classes="rowValue"
+                       Text="{Binding Overscan, StringFormat={}{0:P0}}" />
+            <TextBlock Grid.Row="10" Grid.Column="0" Text="Vignette" Classes="rowLabel" />
+            <Slider Grid.Row="10" Grid.Column="1" Minimum="0" Maximum="1"
+                    Value="{Binding Vignette}" />
+            <TextBlock Grid.Row="10" Grid.Column="2" Classes="rowValue"
+                       Text="{Binding Vignette, StringFormat={}{0:P0}}" />
+            <TextBlock Grid.Row="11" Grid.Column="0" Text="Flicker" Classes="rowLabel" />
+            <Slider Grid.Row="11" Grid.Column="1" Minimum="0" Maximum="1"
+                    Value="{Binding Flicker}" />
+            <TextBlock Grid.Row="11" Grid.Column="2" Classes="rowValue"
+                       Text="{Binding Flicker, StringFormat={}{0:P0}}" />
+            <TextBlock Grid.Row="12" Grid.ColumnSpan="3" Text="PHOSPHOR" Classes="sectionHeader" />
+            <TextBlock Grid.Row="13" Grid.Column="0" Text="Glow" Classes="rowLabel" />
+            <Slider Grid.Row="13" Grid.Column="1" Minimum="0" Maximum="1"
+                    Value="{Binding Glow}" />
+            <TextBlock Grid.Row="13" Grid.Column="2" Classes="rowValue"
+                       Text="{Binding Glow, StringFormat={}{0:P0}}" />
+            <TextBlock Grid.Row="14" Grid.Column="0" Text="Color bleed" Classes="rowLabel" />
+            <Slider Grid.Row="14" Grid.Column="1" Minimum="0" Maximum="1"
+                    Value="{Binding Aberration}" />
+            <TextBlock Grid.Row="14" Grid.Column="2" Classes="rowValue"
+                       Text="{Binding Aberration, StringFormat={}{0:P0}}" />
+            <TextBlock Grid.Row="15" Grid.Column="0" Text="Brightness" Classes="rowLabel" />
+            <Slider Grid.Row="15" Grid.Column="1" Minimum="0.5" Maximum="2"
+                    Value="{Binding Brightness}" />
+            <TextBlock Grid.Row="15" Grid.Column="2" Classes="rowValue"
+                       Text="{Binding Brightness, StringFormat={}{0:F2}x}" />
+            <TextBlock Grid.Row="16" Grid.Column="0" Text="Monochrome" Classes="rowLabel" />
+            <Slider Grid.Row="16" Grid.Column="1" Minimum="0" Maximum="1"
+                    Value="{Binding TintAmount}" />
+            <TextBlock Grid.Row="16" Grid.Column="2" Classes="rowValue"
+                       Text="{Binding TintAmount, StringFormat={}{0:P0}}" />
+            <TextBlock Grid.Row="17" Grid.Column="0" Text="Tube color" Classes="rowLabel" />
+            <ComboBox Grid.Row="17" Grid.Column="1" Margin="14,0,16,8"
+                      VerticalAlignment="Center" HorizontalAlignment="Stretch"
+                      ItemsSource="{Binding TintOptions}"
+                      SelectedItem="{Binding TintOption}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Name}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+            <TextBlock Grid.Row="18" Grid.ColumnSpan="3" Text="SIGNAL" Classes="sectionHeader" />
+            <TextBlock Grid.Row="19" Grid.Column="0" Text="Roll bar" Classes="rowLabel" />
+            <Slider Grid.Row="19" Grid.Column="1" Minimum="0" Maximum="1"
+                    Value="{Binding VerticalHold}" />
+            <TextBlock Grid.Row="19" Grid.Column="2" Classes="rowValue"
+                       Text="{Binding VerticalHold, StringFormat={}{0:P0}}" />
+            <TextBlock Grid.Row="20" Grid.Column="0" Text="Static" Classes="rowLabel" />
+            <Slider Grid.Row="20" Grid.Column="1" Minimum="0" Maximum="1"
+                    Value="{Binding Noise}" />
+            <TextBlock Grid.Row="20" Grid.Column="2" Classes="rowValue"
+                       Text="{Binding Noise, StringFormat={}{0:P0}}" />
+            <TextBlock Grid.Row="21" Grid.Column="0" Text="Scan sweep" Classes="rowLabel" />
+            <Slider Grid.Row="21" Grid.Column="1" Minimum="0" Maximum="1"
+                    Value="{Binding ScanSweep}" />
+            <TextBlock Grid.Row="21" Grid.Column="2" Classes="rowValue"
+                       Text="{Binding ScanSweep, StringFormat={}{0:P0}}" />
+            </Grid>
+        </ScrollViewer>
+
+        <StackPanel Grid.Row="2"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="0,14,0,0">
+            <Button x:Name="ResetButton"
+                    Content="RESET"
+                    Click="ResetButton_Click"
+                    Width="110" />
+            <Button x:Name="DoneButton"
+                    Content="DONE"
+                    Click="DoneButton_Click"
+                    Width="110"
+                    Margin="14,0,0,0" />
+        </StackPanel>
+    </Grid>
+</Window>

@@ -1,0 +1,136 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:TERMinator.Linux.Views"
+        xmlns:effects="clr-namespace:TERMinator.Linux.Effects"
+        x:Class="TERMinator.Linux.Views.MainWindow"
+        Title="TERMinator - BBS Terminal"
+        Width="800" Height="600"
+        MinWidth="640" MinHeight="480"
+        Classes="retro"
+        WindowStartupLocation="CenterScreen"
+        RequestedThemeVariant="Dark">
+
+    <!-- The app (menu + content) with two layers above it: the full-window flair overlays (boot screen, command line,
+         Konami digital rain, idle screensaver) and, on top of everything, the CRT power-on / power-off line and dot.
+         Every overlay reports a zero desired size, so none of them takes part in sizing the window to the home
+         layout. -->
+    <Grid>
+    <DockPanel>
+        <!-- Menu bar. File: the phonebook and saving output. Call: the current connection. View: what's on screen
+             right now. Options: preferences that stick (every one of them is also in Preferences). -->
+        <Menu x:Name="MainMenu" DockPanel.Dock="Top">
+            <MenuItem Header="_File">
+                <MenuItem x:Name="MenuPhonebook" Header="_Phonebook..." />
+                <Separator />
+                <MenuItem x:Name="MenuImportPhonebook" Header="_Import Phonebook..." />
+                <MenuItem x:Name="MenuExportPhonebook" Header="_Export Phonebook..." />
+                <Separator />
+                <MenuItem x:Name="MenuSaveScreenshot" Header="Sa_ve Screenshot..." IsEnabled="False" />
+                <MenuItem x:Name="MenuSnapshot" Header="Take BBS S_napshot" IsEnabled="False" InputGesture="Ctrl+Shift+S" />
+                <Separator />
+                <MenuItem x:Name="MenuExit" Header="E_xit" />
+            </MenuItem>
+            <MenuItem Header="_Edit">
+                <MenuItem x:Name="MenuCopy" Header="_Copy" InputGesture="Ctrl+C" />
+                <MenuItem x:Name="MenuPaste" Header="_Paste" InputGesture="Ctrl+V" />
+                <MenuItem x:Name="MenuSelectAll" Header="Select _All" InputGesture="Ctrl+Shift+A" />
+            </MenuItem>
+            <MenuItem Header="_Call">
+                <MenuItem x:Name="MenuDisconnect" Header="_Disconnect" IsEnabled="False" InputGesture="Alt+H" />
+                <MenuItem x:Name="MenuSendLogin" Header="Send _Login" IsEnabled="False" InputGesture="Alt+I" />
+                <Separator />
+                <!-- Items are built in code from ModemSpeeds.Rates -->
+                <MenuItem x:Name="MenuModemSpeed" Header="Modem _Speed" />
+                <MenuItem x:Name="MenuLogSession" Header="Log Sess_ion" ToggleType="CheckBox" IsEnabled="False" />
+                <Separator />
+                <MenuItem x:Name="MenuSshLog" Header="Show SSH Debug Lo_g" />
+            </MenuItem>
+            <MenuItem Header="_Transfer">
+                <MenuItem x:Name="MenuSendFile" Header="_Send File (ZMODEM)..." IsEnabled="False" />
+                <MenuItem x:Name="MenuReceiveFile" Header="_Receive File (ZMODEM)" IsEnabled="False" />
+                <!-- "Super ZMODEM 8K": uploads grow to 8K subpackets. Downloads take
+                     whatever size the BBS sends, so this only affects sending. -->
+                <MenuItem x:Name="MenuZmodem8k" Header="ZMODEM _8K Blocks" ToggleType="CheckBox" />
+                <Separator />
+                <!-- X/YMODEM never auto-starts the way ZMODEM does: you pick the
+                     protocol on the BBS first, then the matching one here. -->
+                <!-- No -G entry on the send side: xmodem_get_mode() lets the
+                     RECEIVER choose checksum / CRC-16 / streaming-G, so a
+                     "YMODEM-G upload" item would not actually decide anything. -->
+                <MenuItem x:Name="MenuSendXY" Header="Send with X/_YMODEM" IsEnabled="False">
+                    <!-- 128-byte first, deliberately: the 8-bit boards this feature
+                         exists for usually speak only 128-byte SOH blocks, and
+                         xmodem_send_file() only falls back from 1K after 3 failed
+                         blocks. The safer choice is the one that reads first. -->
+                    <MenuItem x:Name="MenuSendXmodem128" Header="_XMODEM (128-byte blocks)..." />
+                    <MenuItem x:Name="MenuSendXmodem" Header="XMODEM (_1K blocks)..." />
+                    <Separator />
+                    <MenuItem x:Name="MenuSendYmodem" Header="_YMODEM..." />
+                </MenuItem>
+                <MenuItem x:Name="MenuReceiveXY" Header="Receive with X/YM_ODEM" IsEnabled="False">
+                    <MenuItem x:Name="MenuRecvXmodem" Header="_XMODEM..." />
+                    <Separator />
+                    <MenuItem x:Name="MenuRecvYmodem" Header="_YMODEM" />
+                    <MenuItem x:Name="MenuRecvYmodemG" Header="YMODEM-_G" />
+                </MenuItem>
+            </MenuItem>
+            <MenuItem Header="_View">
+                <MenuItem x:Name="MenuFullScreen" Header="_Full Screen" InputGesture="Alt+Enter" />
+                <!-- Pause works too; an Avalonia menu item shows only one gesture -->
+                <MenuItem x:Name="MenuBossHide" Header="_Boss Hide" InputGesture="Ctrl+Shift+B" />
+                <MenuItem x:Name="MenuScrollback" Header="_Scrollback" InputGesture="Ctrl+B" IsEnabled="False" />
+                <Separator />
+                <MenuItem x:Name="MenuCommandLine" Header="Command _Line Mode" />
+                <MenuItem x:Name="MenuSideBySideHome" Header="Side-by-Side _Home Screen" ToggleType="CheckBox" />
+                <Separator />
+                <MenuItem Header="_Phosphor">
+                    <MenuItem x:Name="MenuPhosphorColor" Header="_Color" ToggleType="CheckBox" />
+                    <MenuItem x:Name="MenuPhosphorGreen" Header="_Green" ToggleType="CheckBox" />
+                    <MenuItem x:Name="MenuPhosphorAmber" Header="_Amber" ToggleType="CheckBox" />
+                    <MenuItem x:Name="MenuPhosphorWhite" Header="_White" ToggleType="CheckBox" />
+                </MenuItem>
+                <MenuItem x:Name="MenuCrt" Header="_CRT / Scanline Effect..." />
+                <Separator />
+                <MenuItem x:Name="MenuModemLights" Header="_Modem Lights" ToggleType="CheckBox" />
+                <MenuItem x:Name="MenuAlwaysOnTop" Header="Always on _Top" ToggleType="CheckBox" IsVisible="False" />
+            </MenuItem>
+            <MenuItem Header="_Options">
+                <MenuItem x:Name="MenuSettings" Header="_Preferences..." />
+                <Separator />
+                <MenuItem x:Name="MenuBootSequence" Header="_Boot Sequence on Startup" ToggleType="CheckBox" />
+                <MenuItem x:Name="MenuScreensaver" Header="Scree_nsaver" ToggleType="CheckBox" />
+                <MenuItem x:Name="MenuKeyClicks" Header="Model M _Key Clicks" ToggleType="CheckBox" />
+                <MenuItem x:Name="MenuMultiWindow" Header="Separate _Window per BBS" ToggleType="CheckBox" />
+                <MenuItem x:Name="MenuLinkedWindows" Header="Let Boards Open _Extra Windows" ToggleType="CheckBox" />
+            </MenuItem>
+            <MenuItem Header="_Help">
+                <MenuItem x:Name="MenuHelp" Header="TERMinator _Help" />
+                <Separator />
+                <MenuItem x:Name="MenuChangelog" Header="_Changelog" />
+                <MenuItem x:Name="MenuCheckUpdates" Header="Check for _Updates" />
+                <MenuItem x:Name="MenuAbout" Header="_About TERMinator" />
+            </MenuItem>
+        </Menu>
+
+        <!-- Every screen is swapped into ContentArea. The phosphor layer drawn over it tints all of them in one place
+             (home, phonebook, Preferences, the terminal session). ContentHost is what the CRT power effect scales,
+             so the layer scales with the picture. -->
+        <Panel x:Name="ContentHost">
+            <ContentControl x:Name="ContentArea" />
+            <!-- TRACE engine layer (BBSGames/Doom/ENGINE.md): a running module's picture over the terminal area. Its own layer,
+                 separate from the terminal and TAP+; empty unless a module is running. -->
+            <Panel x:Name="EngineHost" />
+            <!-- Rainwire's client-drawn windows (RainwireWm/, Rainwire docs/WINDOWS.md): a Rainwire board's windows over the
+                 terminal, which stays behind them as the desktop. Empty unless a board has handed us its windows. -->
+            <Panel x:Name="RainwireDeskHost" />
+            <!-- Rainwire's menus drawn here (Controls/RainwireMenu.cs, Rainwire docs/MENU_GFX.md, 1.1.6): a board's menu
+                 over the terminal while the board shows one; empty otherwise. -->
+            <Panel x:Name="RainwireMenuHost" />
+            <effects:ScreenEffectOverlay x:Name="ContentPhosphorLayer" />
+        </Panel>
+    </DockPanel>
+
+        <Panel x:Name="FxOverlayHost" />
+        <Panel x:Name="CrtPowerHost" IsHitTestVisible="False" />
+    </Grid>
+</Window>

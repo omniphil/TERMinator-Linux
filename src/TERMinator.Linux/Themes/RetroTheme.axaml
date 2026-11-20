@@ -1,0 +1,768 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:TERMinator.Linux.Controls">
+
+    <Styles.Resources>
+        <!-- ================================================================ -->
+        <!-- Color Palette - Dark CRT Retro Aesthetic                          -->
+        <!-- ================================================================ -->
+
+        <Color x:Key="BackgroundDark">#FF0D0D1A</Color>
+        <Color x:Key="BackgroundMedium">#FF1A1A2E</Color>
+        <Color x:Key="BackgroundLight">#FF25253A</Color>
+        <Color x:Key="SurfaceColor">#FF16213E</Color>
+        <Color x:Key="BorderColor">#FF2A2A4A</Color>
+        <Color x:Key="BorderHighlight">#FF3A3A5C</Color>
+
+        <Color x:Key="AccentGreen">#FF33FF33</Color>
+        <Color x:Key="AccentGreenDim">#FF00AA00</Color>
+        <Color x:Key="AccentAmber">#FFFFAA00</Color>
+        <Color x:Key="AccentAmberDim">#FFCC8800</Color>
+        <Color x:Key="AccentCyan">#FF00FFFF</Color>
+        <Color x:Key="AccentRed">#FFFF3333</Color>
+
+        <Color x:Key="TextPrimary">#FFCCCCCC</Color>
+        <Color x:Key="TextSecondary">#FF888899</Color>
+        <Color x:Key="TextBright">#FFFFFFFF</Color>
+
+        <!-- Brushes -->
+        <SolidColorBrush x:Key="BackgroundDarkBrush" Color="{StaticResource BackgroundDark}" />
+        <SolidColorBrush x:Key="BackgroundMediumBrush" Color="{StaticResource BackgroundMedium}" />
+        <SolidColorBrush x:Key="BackgroundLightBrush" Color="{StaticResource BackgroundLight}" />
+        <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}" />
+        <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />
+        <SolidColorBrush x:Key="BorderHighlightBrush" Color="{StaticResource BorderHighlight}" />
+
+        <SolidColorBrush x:Key="AccentGreenBrush" Color="{StaticResource AccentGreen}" />
+        <SolidColorBrush x:Key="AccentGreenDimBrush" Color="{StaticResource AccentGreenDim}" />
+        <SolidColorBrush x:Key="AccentAmberBrush" Color="{StaticResource AccentAmber}" />
+        <SolidColorBrush x:Key="AccentAmberDimBrush" Color="{StaticResource AccentAmberDim}" />
+        <SolidColorBrush x:Key="AccentCyanBrush" Color="{StaticResource AccentCyan}" />
+        <SolidColorBrush x:Key="AccentRedBrush" Color="{StaticResource AccentRed}" />
+
+        <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimary}" />
+        <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondary}" />
+        <SolidColorBrush x:Key="TextBrightBrush" Color="{StaticResource TextBright}" />
+
+        <!-- ================================================================ -->
+        <!-- Fonts                                                             -->
+        <!-- ================================================================ -->
+
+        <FontFamily x:Key="UIFont">Inter, Noto Sans, sans-serif</FontFamily>
+        <FontFamily x:Key="MonoFont">JetBrains Mono, DejaVu Sans Mono, monospace</FontFamily>
+
+        <!-- Override FluentTheme text box + dropdown resource keys. The styles below only set the
+             RESTING colours; Fluent's templates swap in these keys on hover/focus/open, and with no
+             theme variant set the app follows the system (light under WSLg/most desktops), so the
+             phonebook fields went pale behind grey/green text. Pin every state to the retro palette. -->
+        <SolidColorBrush x:Key="TextControlBackground" Color="{StaticResource SurfaceColor}" />
+        <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="{StaticResource SurfaceColor}" />
+        <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="{StaticResource BackgroundDark}" />
+        <SolidColorBrush x:Key="TextControlBackgroundDisabled" Color="{StaticResource BackgroundMedium}" />
+        <SolidColorBrush x:Key="TextControlForeground" Color="{StaticResource AccentGreen}" />
+        <SolidColorBrush x:Key="TextControlForegroundPointerOver" Color="{StaticResource AccentGreen}" />
+        <SolidColorBrush x:Key="TextControlForegroundFocused" Color="{StaticResource AccentGreen}" />
+        <SolidColorBrush x:Key="TextControlForegroundDisabled" Color="{StaticResource TextSecondary}" />
+        <SolidColorBrush x:Key="TextControlBorderBrush" Color="{StaticResource BorderColor}" />
+        <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="{StaticResource BorderHighlight}" />
+        <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="{StaticResource AccentGreenDim}" />
+        <SolidColorBrush x:Key="TextControlPlaceholderForeground" Color="{StaticResource TextSecondary}" />
+        <SolidColorBrush x:Key="TextControlPlaceholderForegroundPointerOver" Color="{StaticResource TextSecondary}" />
+        <SolidColorBrush x:Key="TextControlPlaceholderForegroundFocused" Color="{StaticResource TextSecondary}" />
+        <SolidColorBrush x:Key="TextControlSelectionHighlightColor" Color="{StaticResource AccentGreenDim}" />
+        <SolidColorBrush x:Key="TextControlButtonForeground" Color="{StaticResource TextSecondary}" />
+        <SolidColorBrush x:Key="TextControlButtonForegroundPointerOver" Color="{StaticResource AccentGreen}" />
+        <SolidColorBrush x:Key="ComboBoxBackground" Color="{StaticResource SurfaceColor}" />
+        <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="{StaticResource BackgroundLight}" />
+        <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="{StaticResource BackgroundLight}" />
+        <SolidColorBrush x:Key="ComboBoxBackgroundFocused" Color="{StaticResource SurfaceColor}" />
+        <SolidColorBrush x:Key="ComboBoxBackgroundDisabled" Color="{StaticResource BackgroundMedium}" />
+        <SolidColorBrush x:Key="ComboBoxForeground" Color="{StaticResource AccentGreen}" />
+        <SolidColorBrush x:Key="ComboBoxForegroundFocused" Color="{StaticResource AccentGreen}" />
+        <SolidColorBrush x:Key="ComboBoxForegroundDisabled" Color="{StaticResource TextSecondary}" />
+        <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="{StaticResource BorderColor}" />
+        <SolidColorBrush x:Key="ComboBoxBorderBrushPointerOver" Color="{StaticResource BorderHighlight}" />
+        <SolidColorBrush x:Key="ComboBoxBorderBrushPressed" Color="{StaticResource AccentGreenDim}" />
+        <SolidColorBrush x:Key="ComboBoxDropDownGlyphForeground" Color="{StaticResource AccentGreen}" />
+        <SolidColorBrush x:Key="ComboBoxDropDownBackground" Color="{StaticResource BackgroundMedium}" />
+        <SolidColorBrush x:Key="ComboBoxDropDownBorderBrush" Color="{StaticResource BorderColor}" />
+        <SolidColorBrush x:Key="ComboBoxItemForeground" Color="{StaticResource TextPrimary}" />
+        <SolidColorBrush x:Key="ComboBoxItemForegroundPointerOver" Color="{StaticResource AccentGreen}" />
+        <SolidColorBrush x:Key="ComboBoxItemForegroundSelected" Color="{StaticResource AccentGreen}" />
+        <SolidColorBrush x:Key="ComboBoxItemForegroundSelectedPointerOver" Color="{StaticResource AccentGreen}" />
+        <SolidColorBrush x:Key="ComboBoxItemBackgroundPointerOver" Color="{StaticResource BackgroundLight}" />
+        <SolidColorBrush x:Key="ComboBoxItemBackgroundPressed" Color="{StaticResource BackgroundLight}" />
+        <SolidColorBrush x:Key="ComboBoxItemBackgroundSelected" Color="{StaticResource SurfaceColor}" />
+        <SolidColorBrush x:Key="ComboBoxItemBackgroundSelectedPointerOver" Color="{StaticResource BackgroundLight}" />
+
+        <!-- Override FluentTheme menu resource keys for dark appearance -->
+        <SolidColorBrush x:Key="MenuFlyoutPresenterBackground" Color="{StaticResource BackgroundMedium}" />
+        <SolidColorBrush x:Key="MenuFlyoutPresenterBorderBrush" Color="{StaticResource BorderColor}" />
+        <SolidColorBrush x:Key="MenuBarItemBackground" Color="Transparent" />
+        <SolidColorBrush x:Key="MenuBarItemBackgroundPointerOver" Color="{StaticResource BackgroundLight}" />
+        <SolidColorBrush x:Key="MenuBarItemBackgroundPressed" Color="{StaticResource BackgroundLight}" />
+        <SolidColorBrush x:Key="MenuFlyoutItemBackground" Color="Transparent" />
+        <SolidColorBrush x:Key="MenuFlyoutItemBackgroundPointerOver" Color="{StaticResource BackgroundLight}" />
+        <SolidColorBrush x:Key="MenuFlyoutItemBackgroundPressed" Color="{StaticResource BackgroundLight}" />
+        <SolidColorBrush x:Key="MenuFlyoutItemForeground" Color="{StaticResource TextBright}" />
+        <SolidColorBrush x:Key="MenuFlyoutItemForegroundPointerOver" Color="{StaticResource AccentGreen}" />
+        <SolidColorBrush x:Key="MenuFlyoutItemForegroundPressed" Color="{StaticResource AccentGreen}" />
+        <SolidColorBrush x:Key="MenuFlyoutItemForegroundDisabled" Color="{StaticResource TextSecondary}" />
+        <!-- Shortcut text (PART_InputGestureText) and submenu chevrons stay the secondary grey, under the white item text -->
+        <SolidColorBrush x:Key="MenuFlyoutItemKeyboardAcceleratorTextForeground" Color="{StaticResource TextSecondary}" />
+        <SolidColorBrush x:Key="MenuFlyoutItemKeyboardAcceleratorTextForegroundPointerOver" Color="{StaticResource TextSecondary}" />
+        <SolidColorBrush x:Key="MenuFlyoutItemKeyboardAcceleratorTextForegroundPressed" Color="{StaticResource TextSecondary}" />
+        <SolidColorBrush x:Key="MenuFlyoutItemKeyboardAcceleratorTextForegroundDisabled" Color="{StaticResource TextSecondary}" />
+        <SolidColorBrush x:Key="MenuFlyoutSubItemChevron" Color="{StaticResource TextSecondary}" />
+        <SolidColorBrush x:Key="MenuFlyoutSubItemChevronPointerOver" Color="{StaticResource TextSecondary}" />
+        <SolidColorBrush x:Key="MenuFlyoutSubItemChevronPressed" Color="{StaticResource TextSecondary}" />
+        <SolidColorBrush x:Key="MenuFlyoutSubItemChevronSubMenuOpened" Color="{StaticResource TextSecondary}" />
+        <SolidColorBrush x:Key="MenuFlyoutSubItemChevronDisabled" Color="{StaticResource TextSecondary}" />
+    </Styles.Resources>
+
+    <!-- ================================================================ -->
+    <!-- Window Style                                                      -->
+    <!-- ================================================================ -->
+
+    <Style Selector="Window.retro">
+        <Setter Property="Background" Value="{StaticResource BackgroundDarkBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="FontFamily" Value="{StaticResource UIFont}" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+
+    <!-- ================================================================ -->
+    <!-- Label Style (Avalonia has no Label; use TextBlock.label)           -->
+    <!-- ================================================================ -->
+
+    <Style Selector="TextBlock.label">
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="FontFamily" Value="{StaticResource UIFont}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <!-- ================================================================ -->
+    <!-- TextBlock Style                                                   -->
+    <!-- ================================================================ -->
+
+    <Style Selector="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="FontFamily" Value="{StaticResource UIFont}" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+
+    <!-- ================================================================ -->
+    <!-- TextBox Style                                                     -->
+    <!-- ================================================================ -->
+
+    <Style Selector="TextBox">
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource AccentGreenBrush}" />
+        <Setter Property="CaretBrush" Value="{StaticResource AccentGreenBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="3" />
+        <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Padding" Value="8,5" />
+        <Setter Property="SelectionBrush" Value="{StaticResource AccentGreenDimBrush}" />
+    </Style>
+
+    <Style Selector="TextBox:focus">
+        <Setter Property="BorderBrush" Value="{StaticResource AccentGreenDimBrush}" />
+    </Style>
+
+    <Style Selector="TextBox:pointerover">
+        <Setter Property="BorderBrush" Value="{StaticResource BorderHighlightBrush}" />
+    </Style>
+
+    <!-- PasswordBox equivalent: TextBox with PasswordChar -->
+    <Style Selector="TextBox.password">
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource AccentGreenBrush}" />
+        <Setter Property="CaretBrush" Value="{StaticResource AccentGreenBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="3" />
+        <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Padding" Value="8,5" />
+        <Setter Property="PasswordChar" Value="*" />
+    </Style>
+
+    <!-- ================================================================ -->
+    <!-- Button Style - Green Terminal Button                              -->
+    <!-- ================================================================ -->
+
+    <Style Selector="Button">
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource AccentGreenBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource AccentGreenDimBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="FontFamily" Value="{StaticResource UIFont}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Padding" Value="20,8" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="CornerRadius" Value="3" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <ControlTemplate TargetType="Button">
+                <Border x:Name="border"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="{TemplateBinding CornerRadius}"
+                        Padding="{TemplateBinding Padding}">
+                    <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                      Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+        <Style Selector="^:pointerover /template/ Border#border">
+            <Setter Property="Background" Value="#4D00AA00" />
+            <Setter Property="BorderBrush" Value="{StaticResource AccentGreenBrush}" />
+        </Style>
+        <Style Selector="^:pressed /template/ Border#border">
+            <Setter Property="Background" Value="#8000AA00" />
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        </Style>
+        <Style Selector="^:disabled /template/ Border#border">
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="Opacity" Value="0.5" />
+        </Style>
+    </Style>
+
+    <!-- Amber accent button variant -->
+    <Style Selector="Button.amber">
+        <Setter Property="Foreground" Value="{StaticResource AccentAmberBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource AccentAmberDimBrush}" />
+        <Style Selector="^:pointerover /template/ Border#border">
+            <Setter Property="Background" Value="#4DCC8800" />
+            <Setter Property="BorderBrush" Value="{StaticResource AccentAmberBrush}" />
+        </Style>
+        <Style Selector="^:pressed /template/ Border#border">
+            <Setter Property="Background" Value="#80CC8800" />
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        </Style>
+        <Style Selector="^:disabled /template/ Border#border">
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="Opacity" Value="0.5" />
+        </Style>
+    </Style>
+
+    <!-- Quick Connect tile button (phonebook-style tile as a Button) -->
+    <Style Selector="Button.quicktile">
+        <Setter Property="Background" Value="{StaticResource BackgroundMediumBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="2" />
+        <Setter Property="Padding" Value="4" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="CornerRadius" Value="2" />
+        <!-- No weight of its own (the Windows tile style doesn't inherit the app button's SemiBold): the labels
+             inside set theirs, so a board name and "Click to choose" stay regular weight -->
+        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <ControlTemplate TargetType="Button">
+                <Border x:Name="tileBorder"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="{TemplateBinding CornerRadius}"
+                        Padding="{TemplateBinding Padding}">
+                    <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                      Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+        <!-- Hover: amber border, lifted background and a soft amber glow (blur 18, opacity 0.75) -->
+        <Style Selector="^:pointerover /template/ Border#tileBorder">
+            <Setter Property="BorderBrush" Value="{StaticResource AccentAmberBrush}" />
+            <Setter Property="Background" Value="{StaticResource BackgroundLightBrush}" />
+            <Setter Property="BoxShadow" Value="0 0 18 0 #BFFFAA00" />
+        </Style>
+        <Style Selector="^:pressed /template/ Border#tileBorder">
+            <Setter Property="Background" Value="{StaticResource BackgroundLightBrush}" />
+        </Style>
+    </Style>
+
+    <!-- Home screen shortcut tile (Phonebook / CRT / Layout / Command / Settings): same look and hover glow as a
+         Quick Connect tile. Add both classes: Classes="quicktile shortcut". -->
+    <Style Selector="Button.shortcut">
+        <Setter Property="Height" Value="72" />
+        <Setter Property="Margin" Value="5,0" />
+    </Style>
+
+    <!-- Shortcut tile icon: line art in amber, 24 px. Linux has no Segoe icon font, so each tile carries an inline
+         Path geometry instead of a code point. -->
+    <Style Selector="Path.shortcutIcon">
+        <Setter Property="Stroke" Value="{StaticResource AccentAmberBrush}" />
+        <Setter Property="StrokeThickness" Value="1.6" />
+        <Setter Property="StrokeLineCap" Value="Round" />
+        <Setter Property="StrokeJoin" Value="Round" />
+        <Setter Property="Width" Value="24" />
+        <Setter Property="Height" Value="24" />
+        <Setter Property="Stretch" Value="None" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="TextBlock.shortcutLabel">
+        <Setter Property="FontSize" Value="10" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="Margin" Value="0,6,0,0" />
+    </Style>
+
+    <!-- ================================================================ -->
+    <!-- ToolTip Style - readable on the dark theme                        -->
+    <!-- ================================================================ -->
+
+    <!-- Without this the Fluent default drew light text on a light background. -->
+    <Style Selector="ToolTip">
+        <Setter Property="Background" Value="{StaticResource BackgroundMediumBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource AccentAmberBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="Padding" Value="8,4" />
+        <Setter Property="Foreground" Value="{StaticResource AccentGreenBrush}" />
+        <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
+        <Setter Property="FontSize" Value="12" />
+    </Style>
+    <Style Selector="ToolTip /template/ Border">
+        <Setter Property="Background" Value="{StaticResource BackgroundMediumBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource AccentAmberBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="BoxShadow" Value="0 2 8 0 #99000000" />
+    </Style>
+    <Style Selector="ToolTip TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource AccentGreenBrush}" />
+        <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
+        <Setter Property="FontSize" Value="12" />
+    </Style>
+
+    <!-- ================================================================ -->
+    <!-- Home screen card (controls:HomeCard)                              -->
+    <!-- ================================================================ -->
+
+    <!-- Three layers: an EMPTY rounded layer behind the card carrying the soft violet drop shadow (so the animated
+         splash inside never renders through a blur), the surface with a transparent 1.5 px border that only reserves
+         the outline's width, and the outline on top in the card's own colour (HomeCard.OutlineColor), hit-test
+         invisible. Hover (pointer anywhere over the card): outline 1.5 -> 3 px growing inward, glow fades in. -->
+    <Style Selector="controls|HomeCard">
+        <Setter Property="Background" Value="{StaticResource BackgroundMediumBrush}" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="Padding" Value="20" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Stretch" />
+        <Setter Property="Template">
+            <ControlTemplate TargetType="controls:HomeCard">
+                <Grid>
+                    <Border x:Name="cardShadow"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            BoxShadow="0 0 26 0 #597B5CFF"
+                            IsHitTestVisible="False" />
+                    <Border x:Name="cardSurface"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            BorderBrush="Transparent"
+                            BorderThickness="1.5"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter x:Name="PART_ContentPresenter"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+                    </Border>
+                    <Border x:Name="cardOutline"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            BorderBrush="{TemplateBinding OutlineBrush}"
+                            BorderThickness="1.5"
+                            BoxShadow="{TemplateBinding IdleGlow}"
+                            IsHitTestVisible="False">
+                        <Border.Transitions>
+                            <Transitions>
+                                <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.2" />
+                            </Transitions>
+                        </Border.Transitions>
+                    </Border>
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+        <Style Selector="^:pointerover /template/ Border#cardOutline">
+            <Setter Property="BorderThickness" Value="3" />
+            <Setter Property="BoxShadow" Value="{TemplateBinding HoverGlow}" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.15" />
+                </Transitions>
+            </Setter>
+        </Style>
+    </Style>
+
+    <!-- Red/danger button variant -->
+    <Style Selector="Button.danger">
+        <Setter Property="Foreground" Value="{StaticResource AccentRedBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource AccentRedBrush}" />
+        <Style Selector="^:pointerover /template/ Border#border">
+            <Setter Property="Background" Value="#33FF3333" />
+        </Style>
+        <Style Selector="^:pressed /template/ Border#border">
+            <Setter Property="Background" Value="#66FF3333" />
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        </Style>
+        <Style Selector="^:disabled /template/ Border#border">
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="Opacity" Value="0.5" />
+        </Style>
+    </Style>
+
+    <!-- ================================================================ -->
+    <!-- CheckBox Style                                                    -->
+    <!-- ================================================================ -->
+
+    <Style Selector="CheckBox">
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="FontFamily" Value="{StaticResource UIFont}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <ControlTemplate TargetType="CheckBox">
+                <StackPanel Orientation="Horizontal">
+                    <Border x:Name="checkBorder"
+                            Width="18" Height="18"
+                            Background="{StaticResource SurfaceBrush}"
+                            BorderBrush="{StaticResource BorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="3"
+                            VerticalAlignment="Center">
+                        <TextBlock x:Name="checkMark"
+                                   Text="X"
+                                   FontFamily="{StaticResource MonoFont}"
+                                   FontSize="11"
+                                   FontWeight="Bold"
+                                   Foreground="{StaticResource AccentGreenBrush}"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   IsVisible="False" />
+                    </Border>
+                    <ContentPresenter Margin="8,0,0,0"
+                                      VerticalAlignment="Center"
+                                      Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}" />
+                </StackPanel>
+            </ControlTemplate>
+        </Setter>
+        <Style Selector="^:checked /template/ TextBlock#checkMark">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+        <Style Selector="^:checked /template/ Border#checkBorder">
+            <Setter Property="BorderBrush" Value="{StaticResource AccentGreenDimBrush}" />
+        </Style>
+        <Style Selector="^:pointerover /template/ Border#checkBorder">
+            <Setter Property="BorderBrush" Value="{StaticResource AccentGreenBrush}" />
+        </Style>
+    </Style>
+
+    <!-- ================================================================ -->
+    <!-- ComboBox Style                                                    -->
+    <!-- ================================================================ -->
+
+    <Style Selector="ComboBox">
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource AccentGreenBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="3" />
+        <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Padding" Value="8,5" />
+    </Style>
+
+    <Style Selector="ComboBox:pointerover">
+        <Setter Property="BorderBrush" Value="{StaticResource BorderHighlightBrush}" />
+    </Style>
+
+    <Style Selector="ComboBox:focus">
+        <Setter Property="BorderBrush" Value="{StaticResource AccentGreenDimBrush}" />
+    </Style>
+
+    <!-- ComboBoxItem style for dropdown items -->
+    <Style Selector="ComboBoxItem">
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Padding" Value="10,6" />
+    </Style>
+
+    <Style Selector="ComboBoxItem:pointerover">
+        <Setter Property="Background" Value="{StaticResource BackgroundLightBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource AccentGreenBrush}" />
+    </Style>
+
+    <Style Selector="ComboBoxItem:selected">
+        <Setter Property="Foreground" Value="{StaticResource AccentGreenBrush}" />
+    </Style>
+
+    <!-- ================================================================ -->
+    <!-- ListBox / ListBoxItem Styles (replaces WPF ListView/ListViewItem) -->
+    <!-- ================================================================ -->
+
+    <Style Selector="ListBox">
+        <Setter Property="Background" Value="{StaticResource BackgroundDarkBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="FontFamily" Value="{StaticResource UIFont}" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+
+    <Style Selector="ListBoxItem">
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="FontFamily" Value="{StaticResource UIFont}" />
+        <Setter Property="Padding" Value="8,6" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Template">
+            <ControlTemplate TargetType="ListBoxItem">
+                <Border x:Name="Bd"
+                        Background="Transparent"
+                        BorderBrush="Transparent"
+                        BorderThickness="0"
+                        Padding="{TemplateBinding Padding}">
+                    <ContentPresenter Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <Style Selector="ListBoxItem:selected /template/ Border#Bd">
+        <Setter Property="Background" Value="#4D00AA00" />
+    </Style>
+
+    <Style Selector="ListBoxItem:selected">
+        <Setter Property="Foreground" Value="{StaticResource AccentGreenBrush}" />
+    </Style>
+
+    <Style Selector="ListBoxItem:not(:selected):pointerover /template/ Border#Bd">
+        <Setter Property="Background" Value="#8025253A" />
+    </Style>
+
+    <!-- Phonebook tile view: border-based hover/selection feedback. Same tile look as a home Quick Connect tile
+         (surface #1A1A2E, #2A2A4A 2 px, corner 2, content inset 4) with 6 px between tiles; list rows sit closer
+         (2 px), so PhonebookView adds the "list-mode" class in list view. -->
+    <Style Selector="ListBox.phonebook-tiles ListBoxItem /template/ Border#Bd">
+        <Setter Property="Background" Value="{StaticResource BackgroundMediumBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="2" />
+        <Setter Property="CornerRadius" Value="2" />
+        <Setter Property="Padding" Value="4" />
+        <Setter Property="Margin" Value="6" />
+    </Style>
+
+    <Style Selector="ListBox.phonebook-tiles.list-mode ListBoxItem /template/ Border#Bd">
+        <Setter Property="Margin" Value="2" />
+    </Style>
+
+    <!-- A selected entry keeps its plain amber border (no glow, no lift) -->
+    <Style Selector="ListBox.phonebook-tiles ListBoxItem:selected /template/ Border#Bd">
+        <Setter Property="Background" Value="{StaticResource BackgroundMediumBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource AccentAmberBrush}" />
+    </Style>
+
+    <!-- Hover (every view mode - small/medium/large tiles and list rows): amber border, lifted background, amber
+         glow, exactly like the home tiles. Last, so hovering a SELECTED entry still lifts and glows. -->
+    <Style Selector="ListBox.phonebook-tiles ListBoxItem:pointerover /template/ Border#Bd">
+        <Setter Property="Background" Value="{StaticResource BackgroundLightBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource AccentAmberBrush}" />
+        <Setter Property="BoxShadow" Value="0 0 18 0 #BFFFAA00" />
+    </Style>
+
+    <Style Selector="ListBox.phonebook-tiles ListBoxItem:selected">
+        <Setter Property="Foreground" Value="{StaticResource AccentGreenBrush}" />
+    </Style>
+
+    <!-- ================================================================ -->
+    <!-- ProgressBar Style                                                 -->
+    <!-- ================================================================ -->
+
+    <Style Selector="ProgressBar">
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource AccentGreenBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="MinHeight" Value="20" />
+        <Setter Property="CornerRadius" Value="3" />
+    </Style>
+
+    <!-- ================================================================ -->
+    <!-- Slider Style                                                      -->
+    <!-- ================================================================ -->
+
+    <Style Selector="Slider">
+        <Setter Property="Foreground" Value="{StaticResource AccentGreenBrush}" />
+    </Style>
+
+    <!-- ================================================================ -->
+    <!-- Menu Styles                                                       -->
+    <!-- ================================================================ -->
+
+    <Style Selector="Menu">
+        <Setter Property="Background" Value="{StaticResource BackgroundMediumBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="FontFamily" Value="{StaticResource UIFont}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="0,0,0,1" />
+    </Style>
+
+    <!-- Top-level menu bar items. Enabled menu text is bright white so it stands out from the dark chrome; disabled
+         items drop back to the secondary grey (see MenuItem:disabled). Highlighted stays green. -->
+    <Style Selector="Menu > MenuItem">
+        <Setter Property="Foreground" Value="{StaticResource TextBrightBrush}" />
+        <Setter Property="FontFamily" Value="{StaticResource UIFont}" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+
+    <Style Selector="Menu > MenuItem /template/ Border#PART_LayoutRoot">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Padding" Value="8,4" />
+    </Style>
+
+    <Style Selector="Menu > MenuItem:pointerover /template/ Border#PART_LayoutRoot">
+        <Setter Property="Background" Value="{StaticResource BackgroundLightBrush}" />
+    </Style>
+
+    <Style Selector="Menu > MenuItem:open /template/ Border#PART_LayoutRoot">
+        <Setter Property="Background" Value="{StaticResource BackgroundLightBrush}" />
+    </Style>
+
+    <!-- Dropdown menu flyout presenter (the popup background) -->
+    <Style Selector="MenuFlyoutPresenter">
+        <Setter Property="Background" Value="{StaticResource BackgroundMediumBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="0,4" />
+        <Setter Property="CornerRadius" Value="2" />
+    </Style>
+
+    <Style Selector="MenuFlyoutPresenter /template/ Border">
+        <Setter Property="Background" Value="{StaticResource BackgroundMediumBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+    </Style>
+
+    <!-- Submenu items (items inside a dropdown) -->
+    <Style Selector="MenuItem">
+        <Setter Property="Foreground" Value="{StaticResource TextBrightBrush}" />
+        <Setter Property="FontFamily" Value="{StaticResource UIFont}" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+
+    <Style Selector="MenuItem /template/ Border#PART_LayoutRoot">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="MenuItem:pointerover /template/ Border#PART_LayoutRoot">
+        <Setter Property="Background" Value="{StaticResource BackgroundLightBrush}" />
+    </Style>
+
+    <Style Selector="MenuItem:pointerover">
+        <Setter Property="Foreground" Value="{StaticResource AccentGreenBrush}" />
+    </Style>
+
+    <Style Selector="MenuItem:disabled">
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        <Setter Property="Opacity" Value="0.4" />
+    </Style>
+
+
+    <!-- ================================================================ -->
+    <!-- ContextMenu Style                                                 -->
+    <!-- ================================================================ -->
+
+    <Style Selector="ContextMenu">
+        <Setter Property="Background" Value="{StaticResource BackgroundMediumBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="FontFamily" Value="{StaticResource UIFont}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Padding" Value="0,4" />
+    </Style>
+
+    <Style Selector="ContextMenu /template/ Border">
+        <Setter Property="Background" Value="{StaticResource BackgroundMediumBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+    </Style>
+
+    <!-- ================================================================ -->
+    <!-- Separator Style                                                   -->
+    <!-- ================================================================ -->
+
+    <Style Selector="Separator">
+        <Setter Property="Background" Value="{StaticResource BorderBrush}" />
+        <Setter Property="Height" Value="1" />
+        <Setter Property="Margin" Value="0,4" />
+    </Style>
+
+    <!-- ================================================================ -->
+    <!-- ScrollBar Style                                                   -->
+    <!-- ================================================================ -->
+
+    <!-- ScrollBar track background -->
+    <Style Selector="ScrollBar">
+        <Setter Property="Background" Value="{StaticResource BackgroundDarkBrush}" />
+    </Style>
+
+    <!-- Vertical scrollbar thumb -->
+    <Style Selector="ScrollBar /template/ Thumb">
+        <Setter Property="Background" Value="#FF555566" />
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="MinWidth" Value="8" />
+        <Setter Property="MinHeight" Value="30" />
+    </Style>
+
+    <Style Selector="ScrollBar /template/ Thumb:pointerover">
+        <Setter Property="Background" Value="#FF777788" />
+    </Style>
+
+    <Style Selector="ScrollBar /template/ Thumb:pressed">
+        <Setter Property="Background" Value="#FF999999" />
+    </Style>
+
+    <!-- Hide the line up/down buttons for a cleaner look -->
+    <Style Selector="ScrollBar /template/ RepeatButton">
+        <Setter Property="IsVisible" Value="False" />
+    </Style>
+
+    <!-- ScrollViewer override to keep scrollbars slim -->
+    <Style Selector="ScrollBar:vertical">
+        <Setter Property="Width" Value="12" />
+        <Setter Property="MinWidth" Value="12" />
+    </Style>
+
+    <Style Selector="ScrollBar:horizontal">
+        <Setter Property="Height" Value="12" />
+        <Setter Property="MinHeight" Value="12" />
+    </Style>
+
+</Styles>

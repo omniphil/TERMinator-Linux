@@ -1,0 +1,48 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="TERMinator.Linux.Controls.HistoryTicker"
+             Cursor="Hand"
+             ToolTip.Tip="Click to see the full list"
+             ClipToBounds="True"
+             Height="48">
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock.ticker">
+            <Setter Property="FontFamily" Value="JetBrains Mono, DejaVu Sans Mono, monospace" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Foreground" Value="#FF55DD55" />
+            <Setter Property="TextAlignment" Value="Center" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Padding" Value="16,4" />
+        </Style>
+        <!-- Hover frame: the same amber cue as the other clickable tiles, and brighter text so the ticker reads as
+             clickable. The transparent background makes the whole area clickable, not just the glyphs. -->
+        <Style Selector="Border#TickerFrame">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+        </Style>
+        <Style Selector="Border#TickerFrame:pointerover">
+            <Setter Property="Background" Value="#14FFAA00" />
+            <Setter Property="BorderBrush" Value="#99FFAA00" />
+        </Style>
+        <Style Selector="Border#TickerFrame:pointerover TextBlock.ticker">
+            <Setter Property="Foreground" Value="#FF9CFF9C" />
+        </Style>
+    </UserControl.Styles>
+
+    <Border x:Name="TickerFrame" CornerRadius="6" BorderThickness="1">
+        <Grid ClipToBounds="True">
+            <TextBlock x:Name="CurrentText" Classes="ticker">
+                <TextBlock.RenderTransform>
+                    <TranslateTransform />
+                </TextBlock.RenderTransform>
+            </TextBlock>
+            <TextBlock x:Name="NextText" Classes="ticker" Opacity="0">
+                <TextBlock.RenderTransform>
+                    <TranslateTransform />
+                </TextBlock.RenderTransform>
+            </TextBlock>
+        </Grid>
+    </Border>
+</UserControl>

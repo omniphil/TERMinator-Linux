@@ -1,0 +1,163 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:TERMinator.Linux.ViewModels"
+             xmlns:conv="clr-namespace:TERMinator.Linux.Converters"
+             x:Class="TERMinator.Linux.Views.PhonebookView"
+             Background="{StaticResource BackgroundDarkBrush}">
+
+    <!-- Thumbnails are exact 4:3 (129x97 / 172x129 / 216x162) and stretch the WHOLE snapshot into that shape, no
+         cropping: snapshots are the terminal's raw 16:10 pixel grid and the terminal itself displays them at 4:3. -->
+    <UserControl.Resources>
+        <DataTemplate x:Key="SmallTileTemplate">
+            <StackPanel Width="129" HorizontalAlignment="Center">
+                <Image Width="129" Height="97"
+                       Source="{Binding SnapshotImagePath, Converter={x:Static conv:AvaresImageConverter.Instance}}"
+                       Stretch="Fill"
+                       RenderOptions.BitmapInterpolationMode="LowQuality" />
+                <TextBlock Text="{Binding Name}"
+                           Foreground="{StaticResource AccentGreenBrush}"
+                           FontSize="10"
+                           TextAlignment="Center"
+                           TextTrimming="CharacterEllipsis"
+                           Margin="0,4,0,2" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate x:Key="MediumTileTemplate">
+            <StackPanel Width="172" HorizontalAlignment="Center">
+                <Image Width="172" Height="129"
+                       Source="{Binding SnapshotImagePath, Converter={x:Static conv:AvaresImageConverter.Instance}}"
+                       Stretch="Fill"
+                       RenderOptions.BitmapInterpolationMode="LowQuality" />
+                <TextBlock Text="{Binding Name}"
+                           Foreground="{StaticResource AccentGreenBrush}"
+                           FontSize="11"
+                           TextAlignment="Center"
+                           TextTrimming="CharacterEllipsis"
+                           Margin="0,4,0,2" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate x:Key="LargeTileTemplate">
+            <StackPanel Width="216" HorizontalAlignment="Center">
+                <Image Width="216" Height="162"
+                       Source="{Binding SnapshotImagePath, Converter={x:Static conv:AvaresImageConverter.Instance}}"
+                       Stretch="Fill"
+                       RenderOptions.BitmapInterpolationMode="LowQuality" />
+                <TextBlock Text="{Binding Name}"
+                           Foreground="{StaticResource AccentGreenBrush}"
+                           FontSize="12"
+                           TextAlignment="Center"
+                           TextTrimming="CharacterEllipsis"
+                           Margin="0,4,0,2" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate x:Key="ListTemplate">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="80" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="{Binding Name}"
+                           Foreground="{StaticResource AccentGreenBrush}"
+                           FontSize="13"
+                           TextTrimming="CharacterEllipsis"
+                           VerticalAlignment="Center"
+                           Margin="6,4" />
+                <TextBlock Grid.Column="1" Text="{Binding DisplayAddress}"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           FontSize="13"
+                           TextTrimming="CharacterEllipsis"
+                           VerticalAlignment="Center"
+                           Margin="6,4" />
+                <TextBlock Grid.Column="2" Text="{Binding Protocol}"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           FontSize="13"
+                           VerticalAlignment="Center"
+                           Margin="6,4" />
+            </Grid>
+        </DataTemplate>
+
+        <ItemsPanelTemplate x:Key="TilePanel">
+            <WrapPanel Orientation="Horizontal" />
+        </ItemsPanelTemplate>
+
+        <ItemsPanelTemplate x:Key="ListPanel">
+            <StackPanel />
+        </ItemsPanelTemplate>
+    </UserControl.Resources>
+
+    <DockPanel Margin="16">
+        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,12">
+            <TextBlock Text="PHONEBOOK"
+                       FontSize="22"
+                       FontWeight="SemiBold"
+                       Foreground="{StaticResource AccentAmberBrush}" />
+            <TextBlock Text="Saved BBS Connections"
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       FontSize="12"
+                       Margin="0,4,0,0" />
+        </StackPanel>
+
+        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,12">
+            <Button Content="VIEW"
+                    Command="{Binding CycleViewCommand}"
+                    DockPanel.Dock="Right" />
+            <StackPanel Orientation="Horizontal">
+                <Button Content="ADD"
+                        Command="{Binding AddConnectionCommand}"
+                        Margin="0,0,6,0" />
+                <Button Content="EDIT"
+                        Command="{Binding EditConnectionCommand}"
+                        Margin="0,0,6,0" />
+                <Button Content="DELETE"
+                        Command="{Binding DeleteConnectionCommand}"
+                        Classes="danger"
+                        Margin="0,0,6,0" />
+                <Separator Width="1"
+                           Height="NaN"
+                           Background="{StaticResource BorderBrush}"
+                           Margin="10,0" />
+                <Button Content="CONNECT"
+                        Command="{Binding ConnectToSelectedCommand}"
+                        Classes="amber"
+                        FontWeight="Bold" />
+                <Button Content="{Binding SortButtonLabel}"
+                        Command="{Binding ToggleSortCommand}"
+                        Margin="6,0,0,0" />
+            </StackPanel>
+        </DockPanel>
+
+        <DockPanel DockPanel.Dock="Bottom" Margin="0,12,0,0">
+            <TextBlock DockPanel.Dock="Right"
+                       Text="{Binding ViewModeLabel}"
+                       Foreground="{StaticResource AccentGreenBrush}"
+                       FontSize="13" FontWeight="SemiBold"
+                       VerticalAlignment="Center" />
+            <Button Content="BACK"
+                    Command="{Binding GoBackCommand}"
+                    HorizontalAlignment="Left" />
+        </DockPanel>
+
+        <!-- Call log line for the selected board (above the bottom bar) -->
+        <TextBlock DockPanel.Dock="Bottom"
+                   Text="{Binding SelectedStatsText}"
+                   Foreground="{StaticResource TextSecondaryBrush}"
+                   FontFamily="{StaticResource MonoFont}"
+                   FontSize="12"
+                   TextTrimming="CharacterEllipsis"
+                   Margin="0,10,0,0" />
+
+        <ListBox x:Name="TileList"
+                 Classes="phonebook-tiles"
+                 ItemsSource="{Binding Connections}"
+                 SelectedItem="{Binding SelectedConnection}"
+                 Background="{StaticResource BackgroundDarkBrush}"
+                 BorderBrush="{StaticResource BorderBrush}"
+                 BorderThickness="1"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                 ScrollViewer.VerticalScrollBarVisibility="Auto" />
+    </DockPanel>
+</UserControl>

@@ -1,0 +1,450 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:TERMinator.Linux.ViewModels"
+             x:Class="TERMinator.Linux.Views.SettingsView"
+             Background="{StaticResource BackgroundDarkBrush}">
+
+    <DockPanel Margin="24">
+        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,20">
+            <TextBlock Text="SETTINGS"
+                       FontSize="22"
+                       FontWeight="SemiBold"
+                       Foreground="{StaticResource AccentAmberBrush}" />
+            <TextBlock Text="Application Preferences"
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       FontSize="12"
+                       Margin="0,4,0,0" />
+        </StackPanel>
+
+        <StackPanel DockPanel.Dock="Bottom"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="0,20,0,0">
+            <Button Content="SAVE"
+                    Command="{Binding SaveCommand}"
+                    Classes="amber"
+                    Width="100"
+                    Margin="0,0,10,0" />
+            <Button Content="CANCEL"
+                    Command="{Binding CancelCommand}"
+                    Classes="danger"
+                    Width="100" />
+        </StackPanel>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+            <StackPanel MaxWidth="600">
+
+                <TextBlock Text="BELL SOUND"
+                           Foreground="{StaticResource AccentGreenBrush}"
+                           FontSize="15"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,12" />
+
+                <CheckBox Content="Play Bell Sound"
+                          IsChecked="{Binding PlayBellSound}"
+                          Margin="0,0,0,10" />
+
+                <Grid Margin="0,0,0,4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Bell Sound:" VerticalAlignment="Center" />
+                    <ComboBox Grid.Column="1"
+                              ItemsSource="{Binding BellSounds}"
+                              SelectedIndex="{Binding BellSoundIndex}" />
+                </Grid>
+
+                <TextBlock Text="{Binding BellDescription}"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           FontFamily="{StaticResource MonoFont}"
+                           FontSize="11"
+                           TextWrapping="Wrap"
+                           Margin="180,0,0,12" />
+
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="50" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Bell Volume:" VerticalAlignment="Center" />
+                    <Slider Grid.Column="1"
+                            Minimum="0" Maximum="10"
+                            Value="{Binding BellVolume}"
+                            TickFrequency="1"
+                            IsSnapToTickEnabled="True"
+                            VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="2"
+                               Text="{Binding BellVolumeDisplay}"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Right" />
+                </Grid>
+
+                <Button Content="TEST SOUND"
+                        Command="{Binding TestBellSoundCommand}"
+                        Width="120"
+                        HorizontalAlignment="Left"
+                        Margin="0,0,0,16"
+                        Padding="12,6" />
+
+                <Separator Margin="0,0,0,16" />
+
+                <TextBlock Text="TERMINAL"
+                           Foreground="{StaticResource AccentGreenBrush}"
+                           FontSize="15"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,12" />
+
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Default Font:" VerticalAlignment="Center" />
+                    <ComboBox Grid.Column="1"
+                              ItemsSource="{Binding FontOptions}"
+                              SelectedItem="{Binding DefaultFont}" />
+                </Grid>
+
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Screen Mode:" VerticalAlignment="Center" />
+                    <ComboBox Grid.Column="1"
+                              ItemsSource="{Binding ScreenModes}"
+                              SelectedIndex="{Binding DefaultScreenMode}" />
+                </Grid>
+
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Connection Timeout:" VerticalAlignment="Center" />
+                    <ComboBox Grid.Column="1"
+                              ItemsSource="{Binding ConnectionTimeoutOptions}"
+                              SelectedIndex="{Binding ConnectionTimeoutIndex}"
+                              ToolTip.Tip="How long to wait for a BBS to answer before giving up." />
+                </Grid>
+
+                <CheckBox Content="Font Smoothing (Anti-Aliasing)"
+                          IsChecked="{Binding FontSmoothing}"
+                          Margin="0,0,0,8" />
+
+                <CheckBox Content="Graphical Windows on Rainwire Boards"
+                          IsChecked="{Binding RainwireGraphicalWindows}"
+                          ToolTip.Tip="On: a Rainwire board's windows, taskbar and start menu are drawn as real graphical windows. Off: in the board's own text look."
+                          Margin="0,0,0,8" />
+
+                <!-- The board's OSC 777 notifications (12.72): read at each connect -->
+                <CheckBox Content="Board Notifications"
+                          IsChecked="{Binding BoardNotifications}"
+                          Margin="0,0,0,4" />
+                <TextBlock Text="Show a system notification when the board pages you or sends you a message while TERMinator is in the background. Applies from the next call. Needs notify-send (libnotify)."
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           FontSize="11"
+                           TextWrapping="Wrap"
+                           Margin="28,0,0,16" />
+
+                <Separator Margin="0,0,0,16" />
+
+                <!-- DISPLAY (also in the View and Options menus) -->
+                <TextBlock Text="DISPLAY"
+                           Foreground="{StaticResource AccentGreenBrush}"
+                           FontSize="15"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,12" />
+
+                <CheckBox Content="Boot Sequence on Startup"
+                          IsChecked="{Binding ShowBootSequence}"
+                          Margin="0,0,0,10" />
+
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                    <CheckBox Content="Screensaver"
+                              IsChecked="{Binding ScreensaverEnabled}"
+                              VerticalAlignment="Center" />
+                    <Button Content="TEST"
+                            Command="{Binding TestScreensaverCommand}"
+                            ToolTip.Tip="Play the screensaver now"
+                            VerticalAlignment="Center"
+                            Margin="16,0,0,0"
+                            Padding="10,3" />
+                </StackPanel>
+
+                <CheckBox Content="Side-by-Side Home Screen"
+                          IsChecked="{Binding HomeSideBySide}"
+                          Margin="0,0,0,10" />
+
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Phosphor:" VerticalAlignment="Center" />
+                    <ComboBox Grid.Column="1"
+                              ItemsSource="{Binding PhosphorModes}"
+                              SelectedIndex="{Binding PhosphorIndex}" />
+                </Grid>
+
+                <Grid Margin="0,0,0,16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="CRT / Scanline Effect:" VerticalAlignment="Center" />
+                    <Button Grid.Column="1"
+                            Content="CRT SETTINGS..."
+                            Command="{Binding OpenCrtSettingsCommand}"
+                            HorizontalAlignment="Left"
+                            Padding="12,6" />
+                </Grid>
+
+                <Separator Margin="0,0,0,16" />
+
+                <!-- MODEM -->
+                <TextBlock Text="MODEM"
+                           Foreground="{StaticResource AccentGreenBrush}"
+                           FontSize="15"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,12" />
+
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Emulated Speed:" VerticalAlignment="Center" />
+                    <ComboBox Grid.Column="1"
+                              ItemsSource="{Binding BaudRates}"
+                              SelectedIndex="{Binding EmulatedBaudIndex}" />
+                </Grid>
+
+                <CheckBox Content="Show Modem Lights in the Status Bar"
+                          IsChecked="{Binding ShowModemLights}"
+                          Margin="0,0,0,10" />
+
+                <CheckBox Content="IBM Model M Key Clicks"
+                          IsChecked="{Binding KeyClicksEnabled}"
+                          Margin="0,0,0,10" />
+
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="50" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Key Click Volume:" VerticalAlignment="Center" />
+                    <Slider Grid.Column="1"
+                            Minimum="0" Maximum="10"
+                            Value="{Binding KeyClickVolume}"
+                            TickFrequency="1"
+                            IsSnapToTickEnabled="True"
+                            VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="2"
+                               Text="{Binding KeyClickVolumeDisplay}"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Right" />
+                </Grid>
+
+                <Button Content="TEST CLICK"
+                        Command="{Binding TestKeyClickCommand}"
+                        Width="120"
+                        HorizontalAlignment="Left"
+                        Margin="0,0,0,16"
+                        Padding="12,6" />
+
+                <Separator Margin="0,0,0,16" />
+
+                <TextBlock Text="TAP+ (Terminal Audio Protocol)"
+                           Foreground="{StaticResource AccentGreenBrush}"
+                           FontSize="15"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,12" />
+
+                <CheckBox Content="TAP+ Multimedia"
+                          IsChecked="{Binding SoundtrackEnabled}"
+                          Margin="0,0,0,10" />
+
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Cache Limit:" VerticalAlignment="Center" />
+                    <ComboBox Grid.Column="1"
+                              ItemsSource="{Binding CacheLimits}"
+                              SelectedIndex="{Binding SoundtrackCacheLimitIndex}" />
+                </Grid>
+
+                <Grid Margin="0,0,0,16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Cache Size:" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding CacheSizeDisplay}"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               FontFamily="{StaticResource MonoFont}"
+                               VerticalAlignment="Center" />
+                    <Button Grid.Column="2"
+                            Content="CLEAR CACHE"
+                            Command="{Binding ClearSoundtrackCacheCommand}"
+                            Classes="danger"
+                            Padding="12,6" />
+                </Grid>
+
+                <Separator Margin="0,0,0,16" />
+
+                <!-- ============================================ -->
+                <!-- TRACE (TERMinator Render And Compute Engine) Section -->
+                <!-- ============================================ -->
+                <TextBlock Text="TRACE (TERMinator Render And Compute Engine)"
+                           Foreground="{StaticResource AccentGreenBrush}"
+                           FontSize="15"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,12" />
+
+                <CheckBox Content="TRACE Graphics"
+                          IsChecked="{Binding TraceEnabled}"
+                          ToolTip.Tip="Lets doors draw with your PC's own processing power. Doors send their graphics modules, which run in a sandbox."
+                          Margin="0,0,0,10" />
+
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Cache Limit:" VerticalAlignment="Center" />
+                    <ComboBox Grid.Column="1"
+                              ItemsSource="{Binding CacheLimits}"
+                              SelectedIndex="{Binding TraceCacheLimitIndex}" />
+                </Grid>
+
+                <Grid Margin="0,0,0,16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Cache Size:" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding TraceCacheDisplay}"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               FontFamily="{StaticResource MonoFont}"
+                               VerticalAlignment="Center" />
+                    <Button Grid.Column="2"
+                            Content="CLEAR CACHE"
+                            Command="{Binding ClearTraceCacheCommand}"
+                            Classes="danger"
+                            Padding="12,6" />
+                </Grid>
+
+                <!-- The list of cached files is folded away until asked for: SHOW (n) / HIDE -->
+                <Grid ColumnDefinitions="180,*" Margin="0,-6,0,16">
+                    <Label Content="Cached Files:" VerticalAlignment="Center" />
+                    <Button Grid.Column="1"
+                            Content="{Binding TraceCacheToggleText}"
+                            Command="{Binding ToggleTraceCacheCommand}"
+                            HorizontalAlignment="Left"
+                            Padding="12,6" />
+                </Grid>
+
+                <!-- What's cached, one row per file (TraceModules.ListCache), each with its own DELETE.
+                     DELETE is disabled, and the row says "in use", while a running module has the file. -->
+                <ItemsControl ItemsSource="{Binding TraceCacheItems}"
+                              IsVisible="{Binding TraceCacheExpanded}"
+                              Margin="180,-6,0,16">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{Binding Text}"
+                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                           FontFamily="{StaticResource MonoFont}"
+                                           TextTrimming="CharacterEllipsis"
+                                           VerticalAlignment="Center"
+                                           Margin="0,0,8,0" />
+                                <Button Grid.Column="1"
+                                        Content="DELETE"
+                                        Command="{Binding DeleteCommand}"
+                                        Classes="danger"
+                                        ToolTip.Tip="Removes this file from the cache. The door sends it again next time it's needed."
+                                        Padding="10,3" />
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <Separator Margin="0,0,0,16" />
+
+                <TextBlock Text="FILE TRANSFER"
+                           Foreground="{StaticResource AccentGreenBrush}"
+                           FontSize="15"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,12" />
+
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Download Directory:" VerticalAlignment="Center" />
+                    <TextBox Grid.Column="1"
+                             Text="{Binding DownloadDirectory}"
+                             Margin="0,0,8,0" />
+                    <Button Grid.Column="2"
+                            Content="..."
+                            Command="{Binding BrowseDownloadDirCommand}"
+                            Width="36"
+                            Padding="4,4" />
+                </Grid>
+
+                <CheckBox Content="Auto-Detect ZMODEM Transfers"
+                          IsChecked="{Binding AutoDetectZmodem}"
+                          Margin="0,0,0,16" />
+
+                <Separator Margin="0,0,0,16" />
+
+                <TextBlock Text="SESSION LOGGING"
+                           Foreground="{StaticResource AccentGreenBrush}"
+                           FontSize="15"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,12" />
+
+                <CheckBox Content="Enable Session Logging"
+                          IsChecked="{Binding EnableSessionLogging}"
+                          Margin="0,0,0,10" />
+
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Log Directory:" VerticalAlignment="Center" />
+                    <TextBox Grid.Column="1"
+                             Text="{Binding LogDirectory}"
+                             Margin="0,0,8,0" />
+                    <Button Grid.Column="2"
+                            Content="..."
+                            Command="{Binding BrowseLogDirCommand}"
+                            Width="36"
+                            Padding="4,4" />
+                </Grid>
+
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</UserControl>

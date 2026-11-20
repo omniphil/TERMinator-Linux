@@ -1,0 +1,40 @@
+# Build artifacts
+bin/
+obj/
+
+# Compiled binaries
+*.dll
+*.so
+*.pdb
+*.exe
+
+# Temporary files
+*.tmp.*
+*_wpftmp.csproj
+
+# Large binary packages
+*.zip
+
+# IDE / tool metadata
+.claude/
+
+# IDE and editor files
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+
+# NuGet
+*.nupkg
+
+# Private / local-only (never publish)
+rollback/
+dist/
+build/
+*.log
+*.bak
+*.pre-ed25519
+
+# ARM build not published (x86_64 only)
+native/cryptlib/linux-aarch64/

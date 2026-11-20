@@ -1,0 +1,186 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:TERMinator.Linux.Controls"
+             xmlns:vlc="clr-namespace:LibVLCSharp.Avalonia;assembly=LibVLCSharp.Avalonia"
+             x:Class="TERMinator.Linux.Views.TerminalView"
+             Background="Black">
+
+    <Grid>
+        <DockPanel>
+            <Border x:Name="StatusBar"
+                    DockPanel.Dock="Bottom"
+                    Background="#FF1A1A2E"
+                    Padding="10,6">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock x:Name="StatusName"
+                               Grid.Column="0"
+                               Foreground="#FFFFAA00"
+                               FontFamily="JetBrains Mono, DejaVu Sans Mono, monospace"
+                               FontSize="14"
+                               VerticalAlignment="Center"
+                               Margin="0,0,16,0" />
+
+                    <TextBlock x:Name="StatusTime"
+                               Grid.Column="1"
+                               Foreground="#FF00AA00"
+                               FontFamily="JetBrains Mono, DejaVu Sans Mono, monospace"
+                               FontSize="14"
+                               VerticalAlignment="Center" />
+
+                    <!-- A Rainwire board's tray gadgets (Controls/RainwireGadgets.cs, Rainwire docs/SCENES_V6.md):
+                         pills while no board menu is up; empty otherwise -->
+                    <ContentControl x:Name="RainwireTrayHost"
+                                    Grid.Column="1"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center" />
+
+                    <!-- Modem front-panel lights -->
+                    <controls:ModemLights x:Name="ModemPanel"
+                                          Grid.Column="2"
+                                          Margin="16,0,0,0" />
+
+                    <TextBlock x:Name="StatusMode"
+                               Grid.Column="3"
+                               Foreground="#FFAAAAAA"
+                               FontFamily="JetBrains Mono, DejaVu Sans Mono, monospace"
+                               FontSize="14"
+                               VerticalAlignment="Center"
+                               Margin="16,0" />
+
+                    <TextBlock x:Name="LoggingIndicator"
+                               Grid.Column="4"
+                               Foreground="#FFFF5555"
+                               FontFamily="JetBrains Mono, DejaVu Sans Mono, monospace"
+                               FontSize="14"
+                               FontWeight="Bold"
+                               VerticalAlignment="Center"
+                               Margin="0,0,16,0" />
+
+                    <TextBlock x:Name="StatusBytes"
+                               Grid.Column="5"
+                               Foreground="#FF00AAAA"
+                               FontFamily="JetBrains Mono, DejaVu Sans Mono, monospace"
+                               FontSize="14"
+                               VerticalAlignment="Center" />
+                </Grid>
+            </Border>
+
+            <Border Background="Black" ClipToBounds="True">
+                <Grid x:Name="OverlayGrid">
+                    <!-- Background image underlay (behind terminal text) -->
+                    <Grid x:Name="BgContainer"
+                          Background="Transparent"
+                          IsVisible="False"
+                          HorizontalAlignment="Left"
+                          VerticalAlignment="Top">
+                        <Image x:Name="BgOverlay" Stretch="Fill" />
+                    </Grid>
+
+                    <controls:TerminalCanvas x:Name="Terminal"
+                                             Focusable="True" />
+
+                    <!-- Image channels 0-7 for TAP+ imgshow created dynamically in code-behind -->
+
+                    <Grid x:Name="VideoContainer"
+                          Background="Black"
+                          IsVisible="False"
+                          HorizontalAlignment="Left"
+                          VerticalAlignment="Top">
+                        <vlc:VideoView x:Name="VideoOverlay" />
+                    </Grid>
+
+                    <Grid x:Name="LogoContainer"
+                          Background="Black"
+                          IsVisible="False"
+                          HorizontalAlignment="Left"
+                          VerticalAlignment="Top">
+                        <Image x:Name="LogoOverlay" Stretch="Fill" />
+                    </Grid>
+
+                    <controls:VisualizerOverlay x:Name="Visualizer"
+                                                IsVisible="False" />
+                </Grid>
+            </Border>
+        </DockPanel>
+
+        <!-- Connecting Overlay: a live connection log. MainWindow feeds it through Services.ConnectionTracer, so a board
+             that doesn't answer shows which stage it stalled at (resolve / tcp / handshake). -->
+        <Border x:Name="ConnectingOverlay"
+                Background="#CC000000"
+                IsVisible="False">
+            <Border MaxWidth="780"
+                    Margin="24"
+                    VerticalAlignment="Center"
+                    Background="#F20D0D1A"
+                    BorderBrush="#FFFFAA00"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="18,14,18,14">
+                <DockPanel>
+                    <TextBlock x:Name="ConnectingText"
+                               DockPanel.Dock="Top"
+                               Text="Connecting..."
+                               Foreground="#FFFFAA00"
+                               FontFamily="JetBrains Mono, DejaVu Sans Mono, monospace"
+                               FontSize="20"
+                               FontWeight="SemiBold"
+                               TextTrimming="CharacterEllipsis"
+                               Margin="0,0,0,10" />
+                    <Button Content="CANCEL"
+                            x:Name="CancelConnectButton"
+                            DockPanel.Dock="Bottom"
+                            Classes="danger"
+                            HorizontalAlignment="Right"
+                            Padding="24,6"
+                            Margin="0,10,0,0" />
+                    <TextBlock x:Name="ConnectStatusText"
+                               DockPanel.Dock="Bottom"
+                               FontFamily="JetBrains Mono, DejaVu Sans Mono, monospace"
+                               FontSize="13"
+                               Foreground="#FF888899"
+                               TextTrimming="CharacterEllipsis"
+                               Margin="0,8,0,0" />
+                    <Border Background="#FF050508"
+                            BorderBrush="#FF2A2A4A"
+                            BorderThickness="1"
+                            CornerRadius="4">
+                        <ScrollViewer x:Name="ConnectLogScroll"
+                                      Height="280"
+                                      VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled"
+                                      Padding="10,8">
+                            <StackPanel x:Name="ConnectLogLines" />
+                        </ScrollViewer>
+                    </Border>
+                </DockPanel>
+            </Border>
+        </Border>
+
+        <!-- A short notice over the terminal, e.g. "Copied from the BBS" after an OSC 52 clipboard write (12.62) -->
+        <Border x:Name="ToastBorder"
+                IsVisible="False"
+                IsHitTestVisible="False"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Bottom"
+                Margin="0,0,0,56"
+                Background="#E61A1A2E"
+                BorderBrush="#FFFFAA00"
+                BorderThickness="1"
+                CornerRadius="6"
+                Padding="14,6">
+            <TextBlock x:Name="ToastText"
+                       Foreground="#FFFFAA00"
+                       FontFamily="JetBrains Mono, DejaVu Sans Mono, monospace"
+                       FontSize="14" />
+        </Border>
+    </Grid>
+</UserControl>

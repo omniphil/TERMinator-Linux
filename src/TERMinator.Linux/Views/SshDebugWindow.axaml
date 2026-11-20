@@ -1,0 +1,42 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="TERMinator.Linux.Views.SshDebugWindow"
+        Title="SSH Connection Log"
+        Width="700" Height="500"
+        WindowStartupLocation="CenterOwner"
+        CanResize="True"
+        Background="#1E1E1E">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0"
+                   Text="SSH Connection Debug Log"
+                   Foreground="#CCCCCC"
+                   FontSize="14" FontWeight="SemiBold"
+                   Margin="0,0,0,8"/>
+
+        <TextBox Grid.Row="1"
+                 x:Name="LogTextBox"
+                 IsReadOnly="True"
+                 TextWrapping="Wrap"
+                 FontFamily="JetBrains Mono, DejaVu Sans Mono, monospace"
+                 FontSize="12"
+                 Background="#0C0C0C"
+                 Foreground="#00FF00"
+                 BorderBrush="#333333"
+                 Padding="8"
+                 AcceptsReturn="True"/>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal"
+                    HorizontalAlignment="Right" Margin="0,8,0,0">
+            <Button Content="Copy to Clipboard" x:Name="CopyButton"
+                    Padding="12,6" Margin="0,0,8,0"/>
+            <Button Content="Close" x:Name="CloseButton"
+                    Padding="12,6"/>
+        </StackPanel>
+    </Grid>
+</Window>

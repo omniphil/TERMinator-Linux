@@ -1,0 +1,181 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="TERMinator.Linux.Views.TransferDialog"
+        Title="File Transfer"
+        Width="640" Height="640"
+        CanResize="True"
+        MinWidth="520" MinHeight="460"
+        WindowStartupLocation="CenterOwner"
+        Classes="retro">
+
+    <Grid Margin="20,18,20,16"
+          RowDefinitions="Auto,Auto,Auto,Auto,Auto,*,Auto">
+        <!-- rows: title + status / file name + path / bar / byte + speed readout /
+             log heading / log (takes the slack) / buttons -->
+
+        <!-- Title on the left, live status on the right, sharing one baseline. -->
+        <Grid Grid.Row="0" Margin="0,0,0,14">
+            <TextBlock Text="{Binding ProtocolTitle}"
+                       FontSize="17"
+                       FontWeight="Bold"
+                       Foreground="{StaticResource AccentAmberBrush}"
+                       HorizontalAlignment="Left"
+                       VerticalAlignment="Center" />
+            <TextBlock x:Name="StatusTextBlock"
+                       Text="{Binding StatusText}"
+                       FontSize="12"
+                       Foreground="{StaticResource AccentCyanBrush}"
+                       HorizontalAlignment="Right"
+                       VerticalAlignment="Center"
+                       TextTrimming="CharacterEllipsis"
+                       MaxWidth="300" />
+        </Grid>
+
+        <!-- File identity. The NAME gets the emphasis and is never trimmed to
+             nothing; the full PATH sits under it, dimmed, with its middle elided
+             so the tail (the part that identifies the file) survives, and the
+             whole thing on the tooltip. -->
+        <StackPanel Grid.Row="1" Margin="0,0,0,12">
+            <Grid>
+                <TextBlock x:Name="FileNameText"
+                           Text="{Binding FileName}"
+                           Foreground="{StaticResource AccentGreenBrush}"
+                           FontWeight="Bold"
+                           FontSize="14"
+                           TextTrimming="CharacterEllipsis"
+                           HorizontalAlignment="Left"
+                           Margin="0,0,60,0" />
+                <TextBlock x:Name="FileCounterText"
+                           Text="{Binding FileCounter}"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           FontSize="12"
+                           HorizontalAlignment="Right"
+                           VerticalAlignment="Center" />
+            </Grid>
+            <TextBlock Text="{Binding FilePathDisplay}"
+                       ToolTip.Tip="{Binding FilePath}"
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       FontSize="11"
+                       Margin="0,2,0,0"
+                       TextTrimming="CharacterEllipsis" />
+        </StackPanel>
+
+        <!-- Progress bar with the percentage sitting on top of it, so the number
+             and the fill are one object rather than two things to reconcile. -->
+        <StackPanel Grid.Row="2" Margin="0,0,0,6">
+
+            <TextBlock Text="{Binding PercentText}"
+                       HorizontalAlignment="Center"
+                       Margin="0,0,0,4"
+                       FontWeight="Bold"
+                       FontSize="15"
+                       Foreground="{StaticResource AccentGreenBrush}" />
+
+            <ProgressBar x:Name="TransferProgress"
+                         Value="{Binding Progress}"
+                         Minimum="0" Maximum="100"
+                         Height="24"
+                         Background="{StaticResource BackgroundDarkBrush}"
+                         BorderBrush="{StaticResource BorderBrush}"
+                         BorderThickness="1"
+                         Foreground="{StaticResource AccentGreenBrush}" />
+
+        </StackPanel>
+
+        <!-- Bytes on the left, throughput and ETA on the right. -->
+        <Grid Grid.Row="3" Margin="0,0,0,16">
+            <TextBlock Text="{Binding BytesText}"
+                       Foreground="{StaticResource TextPrimaryBrush}"
+                       FontFamily="{StaticResource MonoFont}"
+                       FontSize="13"
+                       HorizontalAlignment="Left" />
+            <TextBlock x:Name="SpeedTextBlock"
+                       Text="{Binding SpeedText}"
+                       Foreground="{StaticResource AccentAmberBrush}"
+                       FontFamily="{StaticResource MonoFont}"
+                       FontSize="13"
+                       HorizontalAlignment="Right" />
+        </Grid>
+
+        <TextBlock Grid.Row="4"
+                   Text="PROTOCOL STATUS"
+                   Foreground="{StaticResource TextSecondaryBrush}"
+                   FontSize="11"
+                   Margin="0,0,0,5" />
+
+        <!-- A plain ItemsControl in a ScrollViewer, deliberately NOT a ListBox:
+             this feed is capped at a few hundred short lines, so virtualisation
+             buys nothing (on WPF it cost correctness), and selection is not
+             wanted either. -->
+        <Border Grid.Row="5"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="1"
+                Background="{StaticResource BackgroundDarkBrush}">
+            <ScrollViewer x:Name="LogScroll"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled"
+                          Padding="6,4">
+                <ItemsControl ItemsSource="{Binding LogLines}">
+                    <ItemsControl.Styles>
+                        <!-- Default colour lives in a style, not as a local
+                             Foreground attribute: a local value outranks a
+                             style setter and the S/W/E classes would never
+                             take effect. -->
+                        <Style Selector="TextBlock.logLine">
+                            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+                        </Style>
+                        <Style Selector="TextBlock.logLine.local">
+                            <Setter Property="Foreground" Value="{StaticResource AccentCyanBrush}" />
+                        </Style>
+                        <Style Selector="TextBlock.logLine.warn">
+                            <Setter Property="Foreground" Value="{StaticResource AccentAmberBrush}" />
+                        </Style>
+                        <Style Selector="TextBlock.logLine.diag">
+                            <Setter Property="Foreground" Value="{StaticResource AccentGreenBrush}" />
+                        </Style>
+                        <Style Selector="TextBlock.logLine.error">
+                            <Setter Property="Foreground" Value="{StaticResource AccentRedBrush}" />
+                        </Style>
+                    </ItemsControl.Styles>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Classes="logLine"
+                                       Classes.local="{Binding IsLocal}"
+                                       Classes.warn="{Binding IsWarning}"
+                                       Classes.error="{Binding IsError}"
+                                       Classes.diag="{Binding IsDiag}"
+                                       Text="{Binding Text}"
+                                       FontFamily="{StaticResource MonoFont}"
+                                       FontSize="13"
+                                       Margin="0,0,0,1"
+                                       TextWrapping="Wrap" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Border>
+
+        <StackPanel Grid.Row="6"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="0,14,0,0">
+            <CheckBox Content="Auto close"
+                      IsChecked="{Binding AutoClose}"
+                      Foreground="{StaticResource TextSecondaryBrush}"
+                      VerticalAlignment="Center"
+                      Margin="0,0,20,0"
+                      ToolTip.Tip="Untick to keep this window open after the transfer, e.g. to read the diagnostics" />
+            <Button x:Name="CancelButton"
+                    Content="CANCEL"
+                    Command="{Binding CancelTransferCommand}"
+                    Classes="danger"
+                    Width="110" />
+            <Button x:Name="CloseButton"
+                    Content="CLOSE"
+                    Width="110"
+                    Margin="10,0,0,0"
+                    IsVisible="False" />
+        </StackPanel>
+
+    </Grid>
+</Window>
