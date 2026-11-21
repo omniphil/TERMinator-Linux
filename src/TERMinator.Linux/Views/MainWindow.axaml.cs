@@ -20,7 +20,7 @@ namespace TERMinator.Linux.Views;
 
 public partial class MainWindow : Window, Controls.ICommandLineHost
 {
-    public const string AppVersion = "1.1.6";
+    public const string AppVersion = "1.1.7";
 
     // Shown in the phonebook password box when a password is already stored,
     // so the saved one is never displayed in the clear.

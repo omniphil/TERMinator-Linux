@@ -16,6 +16,11 @@ public static class AppInfoText
     /// missing releases after the fact.
     public static readonly string[] Changelog =
     [
+        "v1.1.7",
+        "• TAP+ improvements",
+        "• Connection time out retries",
+        "• SSH lockup fix",
+        "",
         "v1.1.6",
         "• Rainwire screen engine support",
         "• Rainwire gadget engine support",

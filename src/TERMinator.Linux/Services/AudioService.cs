@@ -25,6 +25,11 @@ public class AudioService : IDisposable
     private const int DownloadTimeoutMs = 15000;
     private const float MasterGain = 0.85f;
     private const int ChannelCount = 4;
+    private const int MaxConcurrentDownloads = 4;
+    private const int PendingPlayWaitMs = 60000;  // a play waits this long for a file that is queued or downloading
+    private const int UnknownPlayWaitMs = 10000;  // ...and this long for one no download is known for
+    // A missing file whose download fails (stall, dropped connection, 5xx) is tried again after these delays
+    private static readonly int[] RetryDelaysSec = [30, 60, 120];
 
     private static readonly HashSet<string> AllowedExtensions =
         [".mp3", ".wav", ".ogg", ".mod", ".s3m", ".xm", ".it", ".mp4", ".m4v", ".webm", ".jpg", ".jpeg", ".png", ".gif", ".webp"];
@@ -43,6 +48,15 @@ public class AudioService : IDisposable
     private readonly SettingsService _settingsService;
     private readonly AudioChannel[] _channels = new AudioChannel[ChannelCount];
     private bool _disposed;
+
+    // Download queue (CacheFile / PumpDownloads), all under _dlLock
+    private readonly object _dlLock = new();
+    private readonly LinkedList<DownloadJob> _missingQueue = new();    // not cached yet: first
+    private readonly LinkedList<DownloadJob> _freshnessQueue = new();  // cached: check for a newer copy
+    private readonly HashSet<string> _queuedDownloads = new(StringComparer.OrdinalIgnoreCase); // queued, running or awaiting retry
+    private readonly Dictionary<string, string> _urlByFilename = new(StringComparer.OrdinalIgnoreCase);
+    private int _activeDownloads;
+    private readonly Dictionary<string, DownloadJob> _retryWaiting = new(StringComparer.OrdinalIgnoreCase); // failed, retry timer running
 
     // Maps TAP display names to actual cached filenames
     private readonly Dictionary<string, string> _displayNameMap = new(StringComparer.OrdinalIgnoreCase);
@@ -72,7 +86,7 @@ public class AudioService : IDisposable
         _cacheDir = Path.Combine(AppSettings.GetAppDataDir(), CacheDirName);
         Directory.CreateDirectory(_cacheDir);
 
-        _httpClient = new HttpClient { Timeout = TimeSpan.FromMilliseconds(DownloadTimeoutMs) };
+        _httpClient = new HttpClient { Timeout = Timeout.InfiniteTimeSpan }; // DownloadAsync runs its own stall timeout
 
         for (int i = 0; i < ChannelCount; i++)
             _channels[i] = new AudioChannel { Volume = initialVolume };
@@ -195,6 +209,12 @@ public class AudioService : IDisposable
         return true;
     }
 
+    /// <summary>
+    /// Queue a file from a URL for the cache.
+    /// The display name from TAP is used as a key; the actual filename from the URL is used for storage.
+    /// Downloads go through a small queue (<see cref="MaxConcurrentDownloads"/> at a time): a door can send a hundred
+    /// cache commands in one burst (Skyraiders sends ~127), and starting them all at once made most time out.
+    /// </summary>
     private void CacheFile(string url, string displayName)
     {
         if (!IsValidUrl(url))
@@ -203,6 +223,7 @@ public class AudioService : IDisposable
             return;
         }
 
+        // Extract the real filename from the URL (e.g. "AxelF.mod" from ".../AxelF.mod")
         string realFilename;
         try
         {
@@ -221,143 +242,238 @@ public class AudioService : IDisposable
             return;
         }
 
+        // Map the display name to the real cached filename
         if (!string.IsNullOrEmpty(displayName))
             _displayNameMap[displayName] = safeFilename;
 
         var targetFile = Path.Combine(_cacheDir, safeFilename);
-        if (File.Exists(targetFile))
+        bool cached = File.Exists(targetFile);
+        lock (_dlLock)
         {
-            Debug.WriteLine($"AudioService: File already cached: {safeFilename}");
-            // Check for newer version in background (conditional GET)
-            _ = Task.Run(async () => await CheckForNewerVersion(url, targetFile, safeFilename));
-            return;
+            _urlByFilename[safeFilename] = url; // lets Play retry a download that failed
+            if (!_queuedDownloads.Add(safeFilename))
+                return; // already queued or downloading
+            var job = new DownloadJob(url, safeFilename, targetFile, freshnessOnly: cached);
+            // Missing files go before freshness checks of files we already have
+            (cached ? _freshnessQueue : _missingQueue).AddLast(job);
         }
-
-        _ = Task.Run(async () =>
-        {
-            try
-            {
-                Debug.WriteLine($"AudioService: Downloading: {url} -> {safeFilename}");
-
-                using var response = await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
-                if (!response.IsSuccessStatusCode)
-                {
-                    Debug.WriteLine($"AudioService: Download failed: HTTP {response.StatusCode} for {url}");
-                    return;
-                }
-
-                var contentLength = response.Content.Headers.ContentLength;
-                if (contentLength > MaxFileSize)
-                {
-                    Debug.WriteLine($"AudioService: File too large: {contentLength} bytes (max: {MaxFileSize})");
-                    return;
-                }
-
-                var tempFile = Path.Combine(_cacheDir, safeFilename + ".tmp");
-                long totalBytes = 0;
-
-                await using (var stream = await response.Content.ReadAsStreamAsync())
-                await using (var fileStream = new FileStream(tempFile, FileMode.Create, FileAccess.Write))
-                {
-                    var buffer = new byte[8192];
-                    int bytesRead;
-                    while ((bytesRead = await stream.ReadAsync(buffer)) > 0)
-                    {
-                        totalBytes += bytesRead;
-                        if (totalBytes > MaxFileSize)
-                        {
-                            Debug.WriteLine("AudioService: Download exceeded size limit, aborting");
-                            fileStream.Close();
-                            File.Delete(tempFile);
-                            return;
-                        }
-                        await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead));
-                    }
-                }
-
-                File.Move(tempFile, targetFile, overwrite: true);
-                Debug.WriteLine($"AudioService: Cached: {safeFilename} ({totalBytes} bytes)");
-                PruneCache();
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"AudioService: Download error for {url}: {ex.Message}");
-            }
-        });
+        PumpDownloads();
     }
 
-    /// <summary>
-    /// Checks if the server has a newer version of a cached file using conditional HTTP GET.
-    /// Uses If-Modified-Since header — server returns 304 if unchanged, 200 if newer.
-    /// </summary>
-    private async Task CheckForNewerVersion(string url, string targetFile, string safeFilename)
+    /// <summary>Starts queued downloads while there are free slots; missing files first.</summary>
+    private void PumpDownloads()
     {
+        lock (_dlLock)
+        {
+            while (!_disposed && _activeDownloads < MaxConcurrentDownloads)
+            {
+                var queue = _missingQueue.Count > 0 ? _missingQueue : _freshnessQueue;
+                if (queue.Count == 0) break;
+                var job = queue.First!.Value;
+                queue.RemoveFirst();
+                _activeDownloads++;
+                _ = Task.Run(() => RunDownload(job));
+            }
+        }
+    }
+
+    private async Task RunDownload(DownloadJob job)
+    {
+        bool retryable = false;
         try
         {
-            var lastModified = File.GetLastWriteTimeUtc(targetFile);
-            using var request = new HttpRequestMessage(HttpMethod.Get, url);
-            request.Headers.IfModifiedSince = new DateTimeOffset(lastModified);
-
-            using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
-
-            if (response.StatusCode == System.Net.HttpStatusCode.NotModified)
-            {
-                Debug.WriteLine($"AudioService: Cache up-to-date: {safeFilename}");
-                return;
-            }
-
-            if (!response.IsSuccessStatusCode)
-            {
-                Debug.WriteLine($"AudioService: Freshness check failed: HTTP {response.StatusCode} for {safeFilename}");
-                return;
-            }
-
-            var contentLength = response.Content.Headers.ContentLength;
-            if (contentLength > MaxFileSize)
-            {
-                Debug.WriteLine($"AudioService: Updated file too large: {contentLength} bytes");
-                return;
-            }
-
-            // Server has a newer version — download it
-            Debug.WriteLine($"AudioService: Updating cached file: {safeFilename}");
-            var tempFile = Path.Combine(_cacheDir, safeFilename + ".tmp");
-            long totalBytes = 0;
-
-            await using (var stream = await response.Content.ReadAsStreamAsync())
-            await using (var fileStream = new FileStream(tempFile, FileMode.Create, FileAccess.Write))
-            {
-                var buffer = new byte[8192];
-                int bytesRead;
-                while ((bytesRead = await stream.ReadAsync(buffer)) > 0)
-                {
-                    totalBytes += bytesRead;
-                    if (totalBytes > MaxFileSize)
-                    {
-                        Debug.WriteLine("AudioService: Update exceeded size limit, aborting");
-                        fileStream.Close();
-                        File.Delete(tempFile);
-                        return;
-                    }
-                    await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead));
-                }
-            }
-
-            File.Move(tempFile, targetFile, overwrite: true);
-            Debug.WriteLine($"AudioService: Updated: {safeFilename} ({totalBytes} bytes)");
+            retryable = await DownloadAsync(job) == DownloadResult.RetryableFailure;
         }
-        catch (TaskCanceledException)
+        catch (OperationCanceledException)
         {
-            Debug.WriteLine($"AudioService: Freshness check timed out for {safeFilename}");
+            Debug.WriteLine($"AudioService: Download stalled (no data for {DownloadTimeoutMs / 1000}s): {job.SafeFilename}");
+            retryable = true;
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"AudioService: Freshness check error for {safeFilename}: {ex.Message}");
+            Debug.WriteLine($"AudioService: Download error for {job.Url}: {ex.Message}");
+            retryable = true;
+        }
+        finally
+        {
+            // Only files we don't have are retried; a failed freshness check just leaves the cached copy in place
+            bool retry = retryable && !job.FreshnessOnly && job.Attempt < RetryDelaysSec.Length && !_disposed;
+            lock (_dlLock)
+            {
+                _activeDownloads--;
+                if (retry)
+                    _retryWaiting[job.SafeFilename] = job; // stays in _queuedDownloads: still pending
+                else
+                    _queuedDownloads.Remove(job.SafeFilename);
+            }
+            if (retry)
+                _ = RetryLater(job);
+            PumpDownloads();
         }
     }
 
+    /// <summary>Puts a failed download back in the queue after its back-off delay, unless a play already did.</summary>
+    private async Task RetryLater(DownloadJob job)
+    {
+        int delaySec = RetryDelaysSec[job.Attempt];
+        job.Attempt++;
+        int attempt = job.Attempt; // a later failure schedules its own timer; this one must not act for it
+        Debug.WriteLine($"AudioService: Will retry {job.SafeFilename} in {delaySec}s (retry {job.Attempt} of {RetryDelaysSec.Length})");
+        await Task.Delay(TimeSpan.FromSeconds(delaySec)).ConfigureAwait(false);
+        lock (_dlLock)
+        {
+            if (_disposed || job.Attempt != attempt || !_retryWaiting.Remove(job.SafeFilename))
+                return; // a play pulled it forward already (and it may have failed again since)
+            _missingQueue.AddLast(job);
+        }
+        PumpDownloads();
+    }
+
+    /// <summary>True while a file is waiting in the download queue or downloading.</summary>
+    private bool IsDownloadPending(string safeFilename)
+    {
+        lock (_dlLock) return _queuedDownloads.Contains(safeFilename);
+    }
+
+    /// <summary>
+    /// A play wants a file that isn't cached: move it to the front of the download queue, or queue it again if an
+    /// earlier download of it failed. Returns true if it is now queued or downloading.
+    /// </summary>
+    private bool RequestDownloadNow(string safeFilename)
+    {
+        lock (_dlLock)
+        {
+            for (var node = _missingQueue.First; node != null; node = node.Next)
+            {
+                if (!string.Equals(node.Value.SafeFilename, safeFilename, StringComparison.OrdinalIgnoreCase)) continue;
+                _missingQueue.Remove(node);
+                _missingQueue.AddFirst(node);
+                Debug.WriteLine($"AudioService: Moved {safeFilename} to the front of the download queue");
+                return true;
+            }
+            if (_retryWaiting.Remove(safeFilename, out var waiting))
+            {
+                _missingQueue.AddFirst(waiting); // a play wants it now: skip the rest of its back-off
+                Debug.WriteLine($"AudioService: Retrying {safeFilename} now (a play wants it)");
+            }
+            else if (_queuedDownloads.Contains(safeFilename))
+                return true; // downloading right now
+            else
+            {
+                if (!_urlByFilename.TryGetValue(safeFilename, out var url))
+                    return false; // never cached by the board
+                _queuedDownloads.Add(safeFilename);
+                _missingQueue.AddFirst(new DownloadJob(url, safeFilename, Path.Combine(_cacheDir, safeFilename), freshnessOnly: false));
+                Debug.WriteLine($"AudioService: Re-queued failed download at the front: {safeFilename}");
+            }
+        }
+        PumpDownloads();
+        return true;
+    }
+
+    /// <summary>
+    /// Downloads one file to the cache (or, for a file already cached, fetches it only if the server has a newer
+    /// copy, via If-Modified-Since). The timeout is a stall timeout: it restarts with every block received, so a big
+    /// file on a slow line still finishes.
+    /// </summary>
+    private async Task<DownloadResult> DownloadAsync(DownloadJob job)
+    {
+        using var stall = new CancellationTokenSource(DownloadTimeoutMs);
+        using var request = new HttpRequestMessage(HttpMethod.Get, job.Url);
+        if (job.FreshnessOnly)
+            request.Headers.IfModifiedSince = new DateTimeOffset(File.GetLastWriteTimeUtc(job.TargetFile));
+
+        Debug.WriteLine($"AudioService: {(job.FreshnessOnly ? "Checking for newer" : "Downloading")}: {job.Url}");
+        using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, stall.Token);
+
+        if (job.FreshnessOnly && response.StatusCode == System.Net.HttpStatusCode.NotModified)
+        {
+            Debug.WriteLine($"AudioService: Cache up-to-date: {job.SafeFilename}");
+            return DownloadResult.Done;
+        }
+        if (!response.IsSuccessStatusCode)
+        {
+            Debug.WriteLine($"AudioService: Download failed: HTTP {(int)response.StatusCode} {response.StatusCode} for {job.Url}");
+            // Server trouble or throttling may pass; a 404 and the like won't
+            int code = (int)response.StatusCode;
+            return code >= 500 || code == 408 || code == 429 ? DownloadResult.RetryableFailure : DownloadResult.PermanentFailure;
+        }
+        var contentLength = response.Content.Headers.ContentLength;
+        if (contentLength > MaxFileSize)
+        {
+            Debug.WriteLine($"AudioService: File too large: {contentLength} bytes (max: {MaxFileSize})");
+            return DownloadResult.PermanentFailure;
+        }
+
+        var tempFile = Path.Combine(_cacheDir, job.SafeFilename + ".tmp");
+        long totalBytes = 0;
+        bool complete = false;
+        try
+        {
+            await using (var stream = await response.Content.ReadAsStreamAsync(stall.Token))
+            await using (var fileStream = new FileStream(tempFile, FileMode.Create, FileAccess.Write))
+            {
+                var buffer = new byte[65536];
+                while (true)
+                {
+                    stall.CancelAfter(DownloadTimeoutMs);
+                    int bytesRead = await stream.ReadAsync(buffer, stall.Token);
+                    if (bytesRead == 0) break;
+                    totalBytes += bytesRead;
+                    if (totalBytes > MaxFileSize)
+                    {
+                        Debug.WriteLine($"AudioService: Download exceeded size limit, aborting: {job.SafeFilename}");
+                        return DownloadResult.PermanentFailure;
+                    }
+                    await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead), stall.Token);
+                }
+            }
+
+            File.Move(tempFile, job.TargetFile, overwrite: true);
+            complete = true;
+            // Stamp the file with the server's Last-Modified: the next visit's If-Modified-Since sends it back, and
+            // nginx (if_modified_since exact, its default) answers 304 only to that exact date. With the download
+            // time instead, every cached file was downloaded again on every visit.
+            if (response.Content.Headers.LastModified is { } serverModified)
+            {
+                try { File.SetLastWriteTimeUtc(job.TargetFile, serverModified.UtcDateTime); }
+                catch { /* the file still works, it's just re-checked in full next time */ }
+            }
+            Debug.WriteLine($"AudioService: {(job.FreshnessOnly ? "Updated" : "Cached")}: {job.SafeFilename} ({totalBytes} bytes)");
+        }
+        finally
+        {
+            if (!complete)
+            {
+                try { File.Delete(tempFile); } catch { /* best effort */ }
+            }
+        }
+        if (!job.FreshnessOnly)
+            PruneCache();
+        return DownloadResult.Done;
+    }
+
+    private enum DownloadResult { Done, RetryableFailure, PermanentFailure }
+
+    private sealed class DownloadJob(string url, string safeFilename, string targetFile, bool freshnessOnly)
+    {
+        public string Url { get; } = url;
+        public string SafeFilename { get; } = safeFilename;
+        public string TargetFile { get; } = targetFile;
+        public bool FreshnessOnly { get; } = freshnessOnly; // already cached: only replace it if the server's is newer
+        public int Attempt;                                  // retries used so far (see RetryDelaysSec)
+    }
+
+    /// <summary>
+    /// Play a cached audio file by filename on the specified channel.
+    /// If the file isn't cached yet (still queued or downloading), it waits for it.
+    /// </summary>
     private void Play(string filename, bool loop, int channel = 0)
     {
+        // Any wait for an earlier play on this channel is now stale
+        int generation = ++_channels[channel].PlayGeneration;
+
+        // First try the display name map (TAP sends display names like "Axel F")
         if (_displayNameMap.TryGetValue(filename, out var mapped))
         {
             Debug.WriteLine($"AudioService: Resolved display name '{filename}' -> '{mapped}'");
@@ -367,6 +483,7 @@ public class AudioService : IDisposable
         var safeFilename = SanitizeFilename(filename);
         if (safeFilename == null)
         {
+            // Last resort -- search cache for a matching file
             safeFilename = FindCachedFile(filename);
             if (safeFilename == null)
             {
@@ -377,25 +494,43 @@ public class AudioService : IDisposable
 
         var file = Path.Combine(_cacheDir, safeFilename);
 
+        // Not cached yet: pull it to the front of the download queue and wait for it
         if (!File.Exists(file))
         {
-            Debug.WriteLine($"AudioService: File not cached yet, waiting: {safeFilename}");
-            _ = WaitAndPlay(file, safeFilename, loop, channel);
+            bool pending = RequestDownloadNow(safeFilename);
+            int waitMs = pending ? PendingPlayWaitMs : UnknownPlayWaitMs;
+            Debug.WriteLine($"AudioService: File not cached yet, waiting up to {waitMs / 1000}s: {safeFilename}" +
+                              (pending ? "" : " (no download known for it)"));
+            _ = WaitAndPlay(file, safeFilename, loop, channel, generation, waitMs);
             return;
         }
 
         PlayInternal(file, safeFilename, loop, channel);
     }
 
-    private async Task WaitAndPlay(string file, string safeFilename, bool loop, int channel)
+    private async Task WaitAndPlay(string file, string safeFilename, bool loop, int channel, int generation, int waitMs)
     {
-        for (int i = 0; i < 40; i++)
+        var started = Environment.TickCount64;
+        while (Environment.TickCount64 - started < waitMs)
         {
             await Task.Delay(250);
+            if (_disposed) return;
+            if (_channels[channel].PlayGeneration != generation)
+            {
+                Debug.WriteLine($"AudioService: Dropped wait for {safeFilename}: ch{channel} got a newer play/stop");
+                return;
+            }
             if (File.Exists(file))
             {
-                Debug.WriteLine($"AudioService: File ready after {(i + 1) * 250}ms: {safeFilename}");
-                PlayInternal(file, safeFilename, loop, channel);
+                Debug.WriteLine($"AudioService: File ready after {Environment.TickCount64 - started}ms: {safeFilename}");
+                if (_channels[channel].PlayGeneration == generation)
+                    PlayInternal(file, safeFilename, loop, channel);
+                return;
+            }
+            // Its download failed while we waited: there is nothing left to wait for
+            if (!IsDownloadPending(safeFilename) && waitMs == PendingPlayWaitMs)
+            {
+                Debug.WriteLine($"AudioService: Gave up on {safeFilename}: its download failed");
                 return;
             }
         }
@@ -573,6 +708,7 @@ public class AudioService : IDisposable
             _channels[i].QueueIndex = 0;
             _channels[i].QueueDelayCts?.Cancel();
             _channels[i].QueueDelayCts = null;
+            _channels[i].PlayGeneration++;
             StopChannelInternal(i);
         }
         AudioAnalyzer.Reset();
@@ -586,6 +722,7 @@ public class AudioService : IDisposable
         _channels[channel].QueueIndex = 0;
         _channels[channel].QueueDelayCts?.Cancel();
         _channels[channel].QueueDelayCts = null;
+        _channels[channel].PlayGeneration++;
         StopChannelInternal(channel);
     }
 
@@ -1085,7 +1222,9 @@ public class AudioService : IDisposable
                 playingFiles.Add(_channels[i].CurrentFilename!);
         }
 
-        var sorted = files.OrderBy(f => f.LastWriteTime).ToArray();
+        // Oldest download first. Creation time, not LastWriteTime: a download's write time is stamped with the server's
+        // Last-Modified (for If-Modified-Since), which can be years old and would get a new download pruned first.
+        var sorted = files.OrderBy(f => f.CreationTimeUtc).ToArray();
         foreach (var file in sorted)
         {
             if (totalSize <= limitBytes) break;
@@ -1197,6 +1336,7 @@ public class AudioService : IDisposable
         public bool Playing;
         public bool IsPaused;
         public string? CurrentFilename;
+        public int PlayGeneration;      // bumped by every play/stop, so a play still waiting on a download knows it is stale
 
         // Queue for auto-advance playback
         public List<(string Filename, int DelaySec)> Queue = new();
